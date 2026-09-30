@@ -36,8 +36,6 @@
     .goal progress { width: 100%; height: 16px; }
     .done { color: #666; text-decoration: line-through; }
     details summary { cursor: pointer; }
-    #balances { margin-top: 22px; }
-    #balances > summary { font-size: 1.5em; font-weight: bold; }
     #purchased-goals { display: none; margin-top: 10px; }
     #purchased-goals > summary { color: #444; }
     #no-goals { color: #666; margin-top: 8px; }
@@ -50,6 +48,10 @@
     .main .stat-value { font-size: 38px; }
     .profit { color: #1a7f37; }
     .balance { color: #0b5cad; }
+
+    .balances-wrap { margin-left: auto; align-self: center; }
+    #balances > summary { color: #0b5cad; font-size: 14px; font-weight: bold; }
+    .balances-panel { position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid #ccc; border-radius: 0 0 8px 8px; padding: 6px 14px 12px; max-height: 60vh; overflow: auto; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
   </style>
 </head>
 <body>
@@ -61,6 +63,39 @@
     <div class="stat">
       <span class="stat-label">Total profit</span>
       <span class="stat-value profit">$<span id="total">0.00</span></span>
+    </div>
+
+    <div class="balances-wrap">
+      <details id="balances">
+        <summary>Platform balances</summary>
+        <div class="balances-panel">
+          <table id="balance-table">
+            <thead>
+              <tr><th>Platform</th><th>Starting balance ($)</th><th>Item profit</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Depop</td>
+                <td><input id="start-Depop" type="number" step="0.01" min="0" placeholder="0.00"></td>
+                <td id="item-Depop">$0.00</td>
+                <td id="sum-Depop">$0.00</td>
+              </tr>
+              <tr>
+                <td>Vinted</td>
+                <td><input id="start-Vinted" type="number" step="0.01" min="0" placeholder="0.00"></td>
+                <td id="item-Vinted">$0.00</td>
+                <td id="sum-Vinted">$0.00</td>
+              </tr>
+              <tr>
+                <td><strong>Combined</strong></td>
+                <td id="start-all">$0.00</td>
+                <td id="item-all">$0.00</td>
+                <td id="sum-all"><strong>$0.00</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
     </div>
   </div>
 
@@ -113,11 +148,19 @@
   </form>
 
   <div class="list-tools">
-    <label>Show
+    <label>Platform
       <select id="filter">
         <option>All</option>
         <option>Depop</option>
         <option>Vinted</option>
+      </select>
+    </label>
+    <label>Status
+      <select id="status-filter">
+        <option>All</option>
+        <option>In progress</option>
+        <option>Listed</option>
+        <option>Sold</option>
       </select>
     </label>
     <label>Remind me to lower prices after
@@ -133,7 +176,7 @@
   <div id="list-count" class="small"></div>
   <table>
     <thead>
-      <tr><th>Photos</th><th>Item</th><th>Site</th><th>Status</th><th>Price</th><th>Days to sell</th><th>Profit</th><th></th></tr>
+      <tr><th>Photos</th><th>Item</th><th>Site</th><th>Status</th><th>Price</th><th>Profit</th><th></th></tr>
     </thead>
     <tbody id="list"></tbody>
   </table>
@@ -156,36 +199,6 @@
   <details id="purchased-goals">
     <summary id="purchased-summary">Purchased goals (0)</summary>
     <div id="purchased-list"></div>
-  </details>
-
-  <!-- PLATFORM BALANCES -->
-  <details id="balances">
-    <summary>Platform balances</summary>
-    <table id="balance-table">
-      <thead>
-        <tr><th>Platform</th><th>Starting balance ($)</th><th>Item profit</th><th>Total</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Depop</td>
-          <td><input id="start-Depop" type="number" step="0.01" min="0" placeholder="0.00"></td>
-          <td id="item-Depop">$0.00</td>
-          <td id="sum-Depop">$0.00</td>
-        </tr>
-        <tr>
-          <td>Vinted</td>
-          <td><input id="start-Vinted" type="number" step="0.01" min="0" placeholder="0.00"></td>
-          <td id="item-Vinted">$0.00</td>
-          <td id="sum-Vinted">$0.00</td>
-        </tr>
-        <tr>
-          <td><strong>Combined</strong></td>
-          <td id="start-all">$0.00</td>
-          <td id="item-all">$0.00</td>
-          <td id="sum-all"><strong>$0.00</strong></td>
-        </tr>
-      </tbody>
-    </table>
   </details>
 
   <script>
@@ -213,6 +226,7 @@
     let balances = {};
     let editingIndex = null;
     let filter = "All";
+    let statusFilter = "All";
     let remindDays = 7;
 
     try {
@@ -233,6 +247,8 @@
     try {
       const savedFilter = localStorage.getItem("filter");
       if (savedFilter === "Depop" || savedFilter === "Vinted") filter = savedFilter;
+      const savedStatusFilter = localStorage.getItem("statusFilter");
+      if (STATUSES.indexOf(savedStatusFilter) !== -1) statusFilter = savedStatusFilter;
       const savedRemind = Number(localStorage.getItem("remindDays"));
       if (savedRemind >= 1) remindDays = savedRemind;
     } catch (e) {}
@@ -265,9 +281,11 @@
     const bumpPercentRow = document.getElementById("bump-percent-row");
     const bumpNote = document.getElementById("bump-note");
     const filterInput = document.getElementById("filter");
+    const statusFilterInput = document.getElementById("status-filter");
     const remindInput = document.getElementById("remind-days");
     const goalForm = document.getElementById("goal-form");
     const addGoalButton = document.getElementById("add-goal-button");
+    const balancesBox = document.getElementById("balances");
 
     function save() {
       try {
@@ -275,6 +293,7 @@
         localStorage.setItem("goals", JSON.stringify(goals));
         localStorage.setItem("balances", JSON.stringify(balances));
         localStorage.setItem("filter", filter);
+        localStorage.setItem("statusFilter", statusFilter);
         localStorage.setItem("remindDays", String(remindDays));
       } catch (e) {}
     }
@@ -483,10 +502,25 @@
       });
     });
 
-    // ---- platform filter and reminder setting ----
+    // Close the balances panel when you click elsewhere or press Escape.
+    document.addEventListener("click", function (event) {
+      if (balancesBox.open && !balancesBox.contains(event.target)) balancesBox.open = false;
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") balancesBox.open = false;
+    });
+
+    // ---- filters and reminder setting ----
     filterInput.value = filter;
     filterInput.addEventListener("change", function () {
       filter = filterInput.value;
+      save();
+      render();
+    });
+
+    statusFilterInput.value = statusFilter;
+    statusFilterInput.addEventListener("change", function () {
+      statusFilter = statusFilterInput.value;
       save();
       render();
     });
@@ -605,7 +639,7 @@
       PLATFORM_NAMES.forEach(function (name) { itemByPlatform[name] = 0; });
 
       items.forEach(function (item, index) {
-        // Totals and reminders always count every item, whatever the filter says.
+        // Totals and reminders always count every item, whatever the filters say.
         const profit = item.status === "Sold" ? profitOf(item) : null;
         if (profit !== null) {
           itemTotal += profit;
@@ -614,6 +648,7 @@
         if (isDue(item)) dueNames.push(item.name);
 
         if (filter !== "All" && item.site !== filter) return;
+        if (statusFilter !== "All" && item.status !== statusFilter) return;
         shown++;
 
         const row = document.createElement("tr");
@@ -672,14 +707,10 @@
         }
         row.appendChild(priceCell);
 
-        // Days to sell and profit
-        const d2 = daysToSell(item);
-        [d2 === null ? "-" : d2 + (d2 === 1 ? " day" : " days"),
-         profit === null ? "-" : money(profit)].forEach(function (text) {
-          const td = document.createElement("td");
-          td.textContent = text;
-          row.appendChild(td);
-        });
+        // Profit
+        const profitCell = document.createElement("td");
+        profitCell.textContent = profit === null ? "-" : money(profit);
+        row.appendChild(profitCell);
 
         // Buttons
         const actionCell = document.createElement("td");
@@ -716,8 +747,11 @@
         list.appendChild(row);
       });
 
+      const parts = [];
+      if (filter !== "All") parts.push(filter);
+      if (statusFilter !== "All") parts.push(statusFilter);
       document.getElementById("list-count").textContent =
-        "Showing " + shown + " of " + items.length + " items" + (filter === "All" ? "" : " (" + filter + ")");
+        "Showing " + shown + " of " + items.length + " items" + (parts.length ? " (" + parts.join(", ") + ")" : "");
 
       const banner = document.getElementById("reduce-banner");
       if (dueNames.length > 0) {
