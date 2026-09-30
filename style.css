@@ -1,0 +1,51 @@
+body { font-family: sans-serif; max-width: 760px; margin: 0 auto; padding: 0 16px 24px; }
+label { display: block; margin: 6px 0; }
+table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+th, td { border-bottom: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; }
+#balance-table input { width: 110px; }
+#item-form, #goal-form { display: none; border: 1px solid #ccc; border-radius: 8px; padding: 6px 14px 12px; margin: 10px 0; }
+#item-form { scroll-margin-top: 130px; }
+#bump-percent-row { display: none; margin-left: 24px; }
+#sold-for-row { display: none; }
+#bump-note { margin-left: 24px; color: #444; }
+fieldset { margin: 10px 0; }
+fieldset label { display: inline-block; margin-right: 12px; }
+.photo-ok { color: #1a7f37; font-weight: bold; }
+.photo-partial { color: #666; }
+.small { font-size: 12px; color: #555; }
+.due { font-size: 12px; color: #b42318; font-weight: bold; }
+#reduce-banner { display: none; background: #fdecea; color: #b42318; border-radius: 6px; padding: 8px 12px; margin-top: 10px; }
+.section-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 22px; }
+.section-head h2 { margin: 0; }
+.list-tools { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.list-tools label { margin: 0; }
+#remind-days { width: 60px; }
+.count-right { text-align: right; margin-top: 6px; }
+.row-progress { background: #fff4d6; }
+.row-listed { background: #e0efff; }
+.row-sold { background: #dff3e3; }
+.goal { border-bottom: 1px solid #ccc; padding: 8px 0; }
+.goal progress { width: 100%; height: 16px; }
+.done { color: #666; text-decoration: line-through; }
+details summary { cursor: pointer; }
+#purchased-goals { display: none; margin-top: 10px; }
+#purchased-goals > summary { color: #444; }
+#no-goals { color: #666; margin-top: 8px; }
+#overall-box { display: none; padding-bottom: 10px; border-bottom: 2px solid #ccc; margin-bottom: 4px; }
+#overall-box progress { width: 100%; height: 18px; }
+.panel-row { margin: 10px 0 4px; }
+
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.summary { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 24px; background: #eeeeee; border-radius: 0 0 8px 8px; padding: 10px 18px; margin: 0 0 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
+.stat { display: flex; flex-direction: column; }
+.stat-label { font-size: 14px; color: #444; }
+.stat-value { font-size: 20px; font-weight: bold; }
+.main .stat-value { font-size: 38px; }
+.profit { color: #1a7f37; }
+.balance { color: #0b5cad; }
+
+.side { margin-left: auto; align-self: center; display: flex; flex-direction: column; gap: 6px; }
+.side > details > summary { color: #0b5cad; font-size: 14px; font-weight: bold; }
+#goals-mini { display: none; }
+#goals-mini progress { width: 170px; height: 10px; display: block; }
+.dropdown-panel { position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid #ccc; border-radius: 0 0 8px 8px; padding: 6px 14px 12px; max-height: 60vh; overflow: auto; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
