@@ -35,4 +35,256 @@
         <option>Sold</option>
       </select>
     </label>
-    <label>Sale price ($) <input id="price" type="number"
+    <label>Sale price ($) <input id="price" type="number" step="0.01" min="0" value="0"></label>
+    <label>Fees ($) <input id="fees" type="number" step="0.01" min="0" value="0"></label>
+    <label>Shipping ($) <input id="shipping" type="number" step="0.01" min="0" value="0"></label>
+    <label>Cost ($) <input id="cost" type="number" step="0.01" min="0" value="0"></label>
+    <button type="submit" id="submit-button">Add item</button>
+    <button type="button" id="cancel-edit">Cancel edit</button>
+  </form>
+
+  <h2>Total profit: $<span id="total">0.00</span></h2>
+  <h3>Available balance: $<span id="balance">0.00</span></h3>
+  <button type="button" id="export-button">Export CSV</button>
+
+  <h2>Goals</h2>
+  <form id="goal-form">
+    <label>Goal name <input id="goal-name" required></label>
+    <label>Amount ($) <input id="goal-amount" type="number" step="0.01" min="0.01" required></label>
+    <button type="submit">Add goal</button>
+  </form>
+  <div id="goal-list"></div>
+
+  <table>
+    <thead>
+      <tr><th>Item</th><th>Site</th><th>Status</th><th>Profit</th><th></th></tr>
+    </thead>
+    <tbody id="list"></tbody>
+  </table>
+
+  <script>
+    let items = [];
+    let goals = [];
+    let editingIndex = null;
+
+    try {
+      items = JSON.parse(localStorage.getItem("items")) || [];
+    } catch (e) {
+      items = [];
+    }
+    try {
+      goals = JSON.parse(localStorage.getItem("goals")) || [];
+    } catch (e) {
+      goals = [];
+    }
+
+    const form = document.getElementById("item-form");
+    const submitButton = document.getElementById("submit-button");
+    const cancelButton = document.getElementById("cancel-edit");
+
+    function save() {
+      try {
+        localStorage.setItem("items", JSON.stringify(items));
+        localStorage.setItem("goals", JSON.stringify(goals));
+      } catch (e) {}
+    }
+
+    function profitOf(item) {
+      return item.price - item.fees - item.shipping - item.cost;
+    }
+
+    function cancelEdit() {
+      editingIndex = null;
+      form.reset();
+      submitButton.textContent = "Add item";
+      cancelButton.style.display = "none";
+    }
+
+    function startEdit(index) {
+      const item = items[index];
+      editingIndex = index;
+      document.getElementById("name").value = item.name;
+      document.getElementById("site").value = item.site;
+      document.getElementById("status").value = item.status;
+      document.getElementById("price").value = item.price;
+      document.getElementById("fees").value = item.fees;
+      document.getElementById("shipping").value = item.shipping;
+      document.getElementById("cost").value = item.cost;
+      submitButton.textContent = "Save changes";
+      cancelButton.style.display = "inline";
+      window.scrollTo(0, 0);
+    }
+
+    function renderGoals(balance) {
+      const goalList = document.getElementById("goal-list");
+      goalList.innerHTML = "";
+
+      goals.forEach(function (goal, index) {
+        const box = document.createElement("div");
+        box.className = "goal";
+
+        const title = document.createElement("div");
+        if (goal.purchased) {
+          title.className = "done";
+          title.textContent = goal.name + " - $" + goal.amount.toFixed(2) + " (purchased)";
+        } else {
+          const have = Math.max(0, Math.min(balance, goal.amount));
+          title.textContent = goal.name + " - $" + have.toFixed(2) + " of $" + goal.amount.toFixed(2);
+        }
+        box.appendChild(title);
+
+        if (!goal.purchased) {
+          const bar = document.createElement("progress");
+          bar.max = goal.amount;
+          bar.value = Math.max(0, Math.min(balance, goal.amount));
+          box.appendChild(bar);
+        }
+
+        const toggle = document.createElement("button");
+        toggle.textContent = goal.purchased ? "Undo" : "Mark purchased";
+        toggle.onclick = function () {
+          if (!goal.purchased && goal.amount > balance) {
+            if (!confirm("You don't have enough balance yet. Mark it purchased anyway?")) return;
+          }
+          goal.purchased = !goal.purchased;
+          save();
+          render();
+        };
+        box.appendChild(toggle);
+
+        const remove = document.createElement("button");
+        remove.textContent = "Delete";
+        remove.onclick = function () {
+          if (confirm("Delete goal " + goal.name + "?")) {
+            goals.splice(index, 1);
+            save();
+            render();
+          }
+        };
+        box.appendChild(remove);
+
+        goalList.appendChild(box);
+      });
+    }
+
+    function render() {
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+      let total = 0;
+
+      items.forEach(function (item, index) {
+        const row = document.createElement("tr");
+        const profit = item.status === "Sold" ? profitOf(item) : null;
+        if (profit !== null) total += profit;
+
+        const cells = [
+          item.name,
+          item.site,
+          item.status,
+          profit === null ? "-" : "$" + profit.toFixed(2)
+        ];
+        cells.forEach(function (text) {
+          const td = document.createElement("td");
+          td.textContent = text;
+          row.appendChild(td);
+        });
+
+        const actionCell = document.createElement("td");
+
+        const editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.onclick = function () {
+          startEdit(index);
+        };
+        actionCell.appendChild(editButton);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.onclick = function () {
+          if (confirm("Delete " + item.name + "?")) {
+            items.splice(index, 1);
+            cancelEdit();
+            save();
+            render();
+          }
+        };
+        actionCell.appendChild(deleteButton);
+
+        row.appendChild(actionCell);
+        list.appendChild(row);
+      });
+
+      let spent = 0;
+      goals.forEach(function (goal) {
+        if (goal.purchased) spent += goal.amount;
+      });
+      const balance = total - spent;
+
+      document.getElementById("total").textContent = total.toFixed(2);
+      document.getElementById("balance").textContent = balance.toFixed(2);
+      renderGoals(balance);
+    }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const item = {
+        name: document.getElementById("name").value,
+        site: document.getElementById("site").value,
+        status: document.getElementById("status").value,
+        price: Number(document.getElementById("price").value),
+        fees: Number(document.getElementById("fees").value),
+        shipping: Number(document.getElementById("shipping").value),
+        cost: Number(document.getElementById("cost").value)
+      };
+      if (editingIndex === null) {
+        items.push(item);
+      } else {
+        items[editingIndex] = item;
+      }
+      cancelEdit();
+      save();
+      render();
+    });
+
+    cancelButton.addEventListener("click", cancelEdit);
+
+    document.getElementById("goal-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      goals.push({
+        name: document.getElementById("goal-name").value,
+        amount: Number(document.getElementById("goal-amount").value),
+        purchased: false
+      });
+      save();
+      render();
+      event.target.reset();
+    });
+
+    function csvCell(value) {
+      let text = String(value);
+      if (/^[=+\-@]/.test(text)) text = "'" + text;
+      return '"' + text.replace(/"/g, '""') + '"';
+    }
+
+    document.getElementById("export-button").addEventListener("click", function () {
+      const rows = [["Item", "Site", "Status", "Sale price", "Fees", "Shipping", "Cost", "Profit"]];
+      items.forEach(function (item) {
+        rows.push([
+          item.name, item.site, item.status,
+          item.price.toFixed(2), item.fees.toFixed(2),
+          item.shipping.toFixed(2), item.cost.toFixed(2),
+          item.status === "Sold" ? profitOf(item).toFixed(2) : ""
+        ]);
+      });
+      const csv = rows.map(function (r) { return r.map(csvCell).join(","); }).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "resale-items.csv";
+      link.click();
+    });
+
+    render();
+  </script>
+</body>
+</html>
