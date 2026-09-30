@@ -19,7 +19,8 @@
     .stat { display: flex; flex-direction: column; }
     .stat-label { font-size: 14px; color: #444; }
     .stat-value { font-size: 20px; font-weight: bold; }
-    .main .stat-value { font-size: 38px; }    .profit { color: #1a7f37; }
+    .main .stat-value { font-size: 38px; }
+    .profit { color: #1a7f37; }
     .balance { color: #0b5cad; }
   </style>
 </head>
@@ -46,6 +47,9 @@
         <option>Sold</option>
       </select>
     </label>
+    <label>Date posted <input id="posted" type="date"></label>
+    <label>Date sold <input id="sold" type="date"></label>
+    <label>Days to sell <input id="days" type="number" min="0" step="1"></label>
     <label>Sale price ($) <input id="price" type="number" step="0.01" min="0" value="0"></label>
     <label>Fees ($) <input id="fees" type="number" step="0.01" min="0" value="0"></label>
     <label>Shipping ($) <input id="shipping" type="number" step="0.01" min="0" value="0"></label>
@@ -75,7 +79,7 @@
 
   <table>
     <thead>
-      <tr><th>Item</th><th>Site</th><th>Status</th><th>Profit</th><th></th></tr>
+      <tr><th>Item</th><th>Site</th><th>Status</th><th>Days to sell</th><th>Profit</th><th></th></tr>
     </thead>
     <tbody id="list"></tbody>
   </table>
@@ -99,6 +103,9 @@
     const form = document.getElementById("item-form");
     const submitButton = document.getElementById("submit-button");
     const cancelButton = document.getElementById("cancel-edit");
+    const postedInput = document.getElementById("posted");
+    const soldInput = document.getElementById("sold");
+    const daysInput = document.getElementById("days");
 
     function save() {
       try {
@@ -110,6 +117,50 @@
     function profitOf(item) {
       return item.price - item.fees - item.shipping - item.cost;
     }
+
+    // ---- date helpers ----
+    function parseDate(text) {
+      const p = text.split("-");
+      return Date.UTC(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    }
+
+    function formatDate(ms) {
+      return new Date(ms).toISOString().slice(0, 10);
+    }
+
+    function dayDiff(fromText, toText) {
+      return Math.round((parseDate(toText) - parseDate(fromText)) / 86400000);
+    }
+
+    function daysToSell(item) {
+      if (!item.posted || !item.sold) return null;
+      return dayDiff(item.posted, item.sold);
+    }
+
+    // ---- keep the three date fields in sync ----
+    function soldFromDays() {
+      if (postedInput.value && daysInput.value !== "") {
+        soldInput.value = formatDate(parseDate(postedInput.value) + Number(daysInput.value) * 86400000);
+      }
+    }
+
+    daysInput.addEventListener("input", soldFromDays);
+
+    soldInput.addEventListener("input", function () {
+      if (soldInput.value === "") {
+        daysInput.value = "";
+      } else if (postedInput.value) {
+        daysInput.value = dayDiff(postedInput.value, soldInput.value);
+      }
+    });
+
+    postedInput.addEventListener("input", function () {
+      if (postedInput.value && soldInput.value) {
+        daysInput.value = dayDiff(postedInput.value, soldInput.value);
+      } else {
+        soldFromDays();
+      }
+    });
 
     function cancelEdit() {
       editingIndex = null;
@@ -124,6 +175,10 @@
       document.getElementById("name").value = item.name;
       document.getElementById("site").value = item.site;
       document.getElementById("status").value = item.status;
+      postedInput.value = item.posted || "";
+      soldInput.value = item.sold || "";
+      const d = daysToSell(item);
+      daysInput.value = d === null ? "" : d;
       document.getElementById("price").value = item.price;
       document.getElementById("fees").value = item.fees;
       document.getElementById("shipping").value = item.shipping;
@@ -195,10 +250,12 @@
         const profit = item.status === "Sold" ? profitOf(item) : null;
         if (profit !== null) total += profit;
 
+        const d = daysToSell(item);
         const cells = [
           item.name,
           item.site,
           item.status,
+          d === null ? "-" : d + (d === 1 ? " day" : " days"),
           profit === null ? "-" : "$" + profit.toFixed(2)
         ];
         cells.forEach(function (text) {
@@ -245,10 +302,18 @@
 
     form.addEventListener("submit", function (event) {
       event.preventDefault();
+
+      if (postedInput.value && soldInput.value && dayDiff(postedInput.value, soldInput.value) < 0) {
+        alert("The sold date can't be earlier than the posted date.");
+        return;
+      }
+
       const item = {
         name: document.getElementById("name").value,
         site: document.getElementById("site").value,
         status: document.getElementById("status").value,
+        posted: postedInput.value,
+        sold: soldInput.value,
         price: Number(document.getElementById("price").value),
         fees: Number(document.getElementById("fees").value),
         shipping: Number(document.getElementById("shipping").value),
@@ -285,10 +350,12 @@
     }
 
     document.getElementById("export-button").addEventListener("click", function () {
-      const rows = [["Item", "Site", "Status", "Sale price", "Fees", "Shipping", "Cost", "Profit"]];
+      const rows = [["Item", "Site", "Status", "Date posted", "Date sold", "Days to sell", "Sale price", "Fees", "Shipping", "Cost", "Profit"]];
       items.forEach(function (item) {
+        const d = daysToSell(item);
         rows.push([
           item.name, item.site, item.status,
+          item.posted || "", item.sold || "", d === null ? "" : d,
           item.price.toFixed(2), item.fees.toFixed(2),
           item.shipping.toFixed(2), item.cost.toFixed(2),
           item.status === "Sold" ? profitOf(item).toFixed(2) : ""
