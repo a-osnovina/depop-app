@@ -1,0 +1,12 @@
+{
+  "name": "Resale Tracker",
+  "short_name": "Resale",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0b5cad",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
