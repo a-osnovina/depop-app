@@ -72,7 +72,7 @@
 
     /* Header and buttons above the list */
     .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 4px; }
-    .toolbar { display: flex; gap: 8px; margin: 4px 0 0; }
+    .toolbar { display: flex; gap: 8px; margin: 12px 0 0; }
     .toolbar button { flex: 1; }
     #import-note { display: none; background: #e8f3ff; color: #0b3d75; border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
     #import-note.warn { background: #fff4d6; color: #6b4a00; }
@@ -82,7 +82,7 @@
 
     /* Add / edit form */
     #item-form { display: none; border: 1px solid #ccc; border-radius: 12px; padding: 2px 14px 16px; margin: 12px 0; scroll-margin-top: 170px; }
-    #bump-percent-row { display: none; margin-left: 12px; }
+    #bump-amount-row { display: none; margin-left: 12px; }
     #sold-for-row { display: none; }
     #bump-note { margin-left: 12px; color: #444; }
     fieldset { margin: 16px 0 0; border: 1px solid #ddd; border-radius: 10px; padding: 4px 12px 10px; }
@@ -121,6 +121,16 @@
     .due { font-size: 13px; color: #b42318; font-weight: bold; }
     .card-actions { display: flex; gap: 8px; margin-top: 12px; }
     .card-actions button { flex: 1; padding: 0 4px; font-size: 15px; white-space: nowrap; }
+
+    /* Lower price pop-up */
+    #price-modal { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 50; background: rgba(0, 0, 0, 0.45); display: flex; align-items: flex-end; justify-content: center; }
+    .modal-panel { background: #ffffff; width: 100%; max-width: 760px; border-radius: 16px 16px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); max-height: 92vh; overflow: auto; }
+    .modal-panel h3 { margin: 0 0 2px; font-size: 18px; overflow-wrap: anywhere; }
+    .suggest { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 56px; margin-top: 10px; text-align: left; }
+    .suggest .pct { font-weight: 700; }
+    .suggest .amt { text-align: right; }
+    .suggest .amt small { display: block; font-size: 12px; color: #b42318; }
+    #photo-details { display: none; }
   </style>
 </head>
 <body>
@@ -207,6 +217,26 @@
 
   <!-- ITEM LIST -->
   <h2>Item list</h2>
+  <div class="list-tools">
+    <label class="field">Platform
+      <select id="filter">
+        <option>All</option>
+        <option>Depop</option>
+        <option>Vinted</option>
+      </select>
+    </label>
+    <label class="field">Status
+      <select id="status-filter">
+        <option>All</option>
+        <option>In progress</option>
+        <option>Listed</option>
+        <option>Sold</option>
+      </select>
+    </label>
+    <label class="remind-row">Remind me to lower prices after
+      <input id="remind-days" type="number" inputmode="numeric" min="1" step="1" value="7"> days
+    </label>
+  </div>
   <div class="toolbar">
     <button type="button" id="add-item-button" class="primary">+ Add item</button>
     <button type="button" id="import-button">Import from screenshot</button>
@@ -244,21 +274,21 @@
       <input type="file" id="pic-file" accept="image/*" hidden>
     </div>
 
-    <fieldset>
-      <legend>Photos taken</legend>
+    <label class="check" style="margin-top:14px"><input type="checkbox" id="photos-all"> All photos taken</label>
+    <fieldset id="photo-details">
+      <legend>Tick the photos you have taken</legend>
       <div id="photo-boxes"></div>
     </fieldset>
 
     <label class="field">Date posted <input id="posted" type="date"></label>
     <label class="field">Date sold <input id="sold" type="date"></label>
-    <label class="field">Days to sell <input id="days" type="number" inputmode="numeric" min="0" step="1"></label>
 
     <label class="field">Original listed price ($) <input id="original" type="number" inputmode="decimal" step="0.01" min="0" value="0"></label>
     <label class="field">Current price ($) <input id="current" type="number" inputmode="decimal" step="0.01" min="0" placeholder="same as original"></label>
     <label class="field" id="sold-for-row">Sold for ($) <input id="sold-for" type="number" inputmode="decimal" step="0.01" min="0" placeholder="same as current price"></label>
 
     <label class="check" style="margin-top:14px"><input type="checkbox" id="bump"> <span id="bump-label"></span></label>
-    <label class="field" id="bump-percent-row">Bump cost (% of sale price) <input id="bump-percent" type="number" inputmode="decimal" step="0.1" min="0" value="12"></label>
+    <label class="field" id="bump-amount-row">Bump cost ($) <input id="bump-amount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00"></label>
     <div id="bump-note"></div>
 
     <div class="form-actions">
@@ -267,35 +297,31 @@
     </div>
   </form>
 
-  <div class="list-tools" style="margin-top:14px">
-    <label class="field">Platform
-      <select id="filter">
-        <option>All</option>
-        <option>Depop</option>
-        <option>Vinted</option>
-      </select>
-    </label>
-    <label class="field">Status
-      <select id="status-filter">
-        <option>All</option>
-        <option>In progress</option>
-        <option>Listed</option>
-        <option>Sold</option>
-      </select>
-    </label>
-    <label class="remind-row">Remind me to lower prices after
-      <input id="remind-days" type="number" inputmode="numeric" min="1" step="1" value="7"> days
-    </label>
-  </div>
   <div id="reduce-banner"></div>
   <div id="list"></div>
   <div id="list-count" class="small count-right"></div>
 
+  <div id="price-modal" hidden>
+    <div class="modal-panel">
+      <h3 id="price-modal-title"></h3>
+      <div id="price-modal-now" class="small"></div>
+      <div id="price-suggestions"></div>
+      <label class="field">Or type a new price ($)
+        <input id="price-custom" type="number" inputmode="decimal" step="0.01" min="0">
+      </label>
+      <div class="form-actions">
+        <button type="button" id="price-set" class="primary">Set price</button>
+        <button type="button" id="price-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Change bump wording or the default percent for each platform here.
+    // Bump settings for each platform. bumpPercent is worked out for you (percent of the current price);
+    // a platform with bumpPercent: null asks you to type the bump cost in dollars instead.
     const PLATFORMS = {
-      Depop: { bumpLabel: "I bumped this listing on Depop", defaultPercent: 12 },
-      Vinted: { bumpLabel: "I bumped this listing on Vinted (3 days)", defaultPercent: 12 }
+      Depop: { bumpLabel: "I bumped this listing on Depop", bumpPercent: 12 },
+      Vinted: { bumpLabel: "I bumped this listing on Vinted (3 days)", bumpPercent: null }
     };
     const PLATFORM_NAMES = Object.keys(PLATFORMS);
 
@@ -356,6 +382,13 @@
       if (item.soldFor === undefined) item.soldFor = item.status === "Sold" ? (Number(item.price) || 0) : null;
       if (!item.priceChanged) item.priceChanged = "";
       if (!item.picture) item.picture = "";
+      // Older Vinted bumps were a percent; keep their cost as a typed-in dollar amount.
+      if (item.bumpAmount === undefined) {
+        const config = PLATFORMS[item.site];
+        item.bumpAmount = item.bump && config && !config.bumpPercent
+          ? Math.round(salePrice(item) * (item.bumpPercent || 0)) / 100
+          : 0;
+      }
     });
 
     const form = document.getElementById("item-form");
@@ -375,10 +408,9 @@
     const soldForRow = document.getElementById("sold-for-row");
     const postedInput = document.getElementById("posted");
     const soldInput = document.getElementById("sold");
-    const daysInput = document.getElementById("days");
     const bumpInput = document.getElementById("bump");
-    const bumpPercentInput = document.getElementById("bump-percent");
-    const bumpPercentRow = document.getElementById("bump-percent-row");
+    const bumpAmountInput = document.getElementById("bump-amount");
+    const bumpAmountRow = document.getElementById("bump-amount-row");
     const bumpNote = document.getElementById("bump-note");
     const filterInput = document.getElementById("filter");
     const statusFilterInput = document.getElementById("status-filter");
@@ -426,6 +458,25 @@
       photoBoxes.appendChild(label);
     });
 
+    const photosAll = document.getElementById("photos-all");
+    const photoDetails = document.getElementById("photo-details");
+
+    function setAllPhotoBoxes(value) {
+      PHOTO_TYPES.forEach(function (type) {
+        document.getElementById("photo-" + type.key).checked = value;
+      });
+    }
+
+    // One tick means every photo is done. Leave it unticked to choose which ones are taken.
+    function updatePhotoUI() {
+      photoDetails.style.display = photosAll.checked ? "none" : "block";
+    }
+
+    photosAll.addEventListener("change", function () {
+      setAllPhotoBoxes(photosAll.checked);
+      updatePhotoUI();
+    });
+
     function photoCount(item) {
       let count = 0;
       PHOTO_TYPES.forEach(function (type) {
@@ -439,21 +490,20 @@
       return item.soldFor !== null && item.soldFor !== undefined ? item.soldFor : item.current;
     }
 
-    function bumpCost(price, percent) {
-      return Math.round(price * percent) / 100;
-    }
-
+    // Depop bumps cost a set percent of the current price. Vinted bumps use the dollar amount you typed.
     function feeTotal(item) {
-      return item.bump ? bumpCost(salePrice(item), item.bumpPercent || 0) : 0;
+      if (!item.bump) return 0;
+      const config = PLATFORMS[item.site];
+      if (config && config.bumpPercent) return Math.round(item.current * config.bumpPercent) / 100;
+      return item.bumpAmount || 0;
     }
 
     function profitOf(item) {
       return salePrice(item) - feeTotal(item);
     }
 
-    // The price used for the bump preview while you fill in the form.
-    function formPrice() {
-      if (statusInput.value === "Sold" && soldForInput.value !== "") return Number(soldForInput.value) || 0;
+    // The current price as typed in the form (the original price if the current box is empty).
+    function formCurrent() {
       if (currentInput.value !== "") return Number(currentInput.value) || 0;
       return Number(originalInput.value) || 0;
     }
@@ -463,14 +513,16 @@
     }
 
     // ---- bump options that change with the platform ----
-    function updateBumpUI(resetPercent) {
+    function updateBumpUI(clearAmount) {
       const config = PLATFORMS[siteInput.value];
+      const typedIn = !config.bumpPercent;
       document.getElementById("bump-label").textContent = config.bumpLabel;
-      if (resetPercent) bumpPercentInput.value = config.defaultPercent;
-      bumpPercentRow.style.display = bumpInput.checked ? "block" : "none";
-      if (bumpInput.checked) {
-        const cost = bumpCost(formPrice(), Number(bumpPercentInput.value) || 0);
-        bumpNote.textContent = "Bump cost: $" + cost.toFixed(2);
+      if (clearAmount && typedIn) bumpAmountInput.value = "";
+      bumpAmountRow.style.display = bumpInput.checked && typedIn ? "block" : "none";
+      bumpAmountInput.required = bumpInput.checked && typedIn;
+      if (bumpInput.checked && !typedIn) {
+        const cost = Math.round(formCurrent() * config.bumpPercent) / 100;
+        bumpNote.textContent = "Bump cost: $" + cost.toFixed(2) + " (" + config.bumpPercent + "% of the current price)";
       } else {
         bumpNote.textContent = "";
       }
@@ -481,8 +533,6 @@
     bumpInput.addEventListener("change", function () { updateBumpUI(false); });
     originalInput.addEventListener("input", function () { updateBumpUI(false); });
     currentInput.addEventListener("input", function () { updateBumpUI(false); });
-    soldForInput.addEventListener("input", function () { updateBumpUI(false); });
-    bumpPercentInput.addEventListener("input", function () { updateBumpUI(false); });
 
     // ---- date helpers ----
     function pad(n) {
@@ -524,31 +574,6 @@
       const d = daysAtPrice(item);
       return d !== null && d >= remindDays;
     }
-
-    // ---- keep the three date fields in sync ----
-    function soldFromDays() {
-      if (postedInput.value && daysInput.value !== "") {
-        soldInput.value = formatDate(parseDate(postedInput.value) + Number(daysInput.value) * 86400000);
-      }
-    }
-
-    daysInput.addEventListener("input", soldFromDays);
-
-    soldInput.addEventListener("input", function () {
-      if (soldInput.value === "") {
-        daysInput.value = "";
-      } else if (postedInput.value) {
-        daysInput.value = dayDiff(postedInput.value, soldInput.value);
-      }
-    });
-
-    postedInput.addEventListener("input", function () {
-      if (postedInput.value && soldInput.value) {
-        daysInput.value = dayDiff(postedInput.value, soldInput.value);
-      } else {
-        soldFromDays();
-      }
-    });
 
     // ---- item picture (a small copy is saved with the item in your browser) ----
     const picPreview = document.getElementById("pic-preview");
@@ -626,6 +651,7 @@
       editingIndex = null;
       form.reset();
       setFormPhoto("");
+      updatePhotoUI();
       updateSoldForUI();
       updateBumpUI(true);
       submitButton.textContent = "Add item";
@@ -659,16 +685,16 @@
       PHOTO_TYPES.forEach(function (type) {
         document.getElementById("photo-" + type.key).checked = !!(item.photos && item.photos[type.key]);
       });
+      photosAll.checked = photoCount(item) === PHOTO_TYPES.length;
+      updatePhotoUI();
       setFormPhoto(item.picture || "");
       postedInput.value = item.posted || "";
       soldInput.value = item.sold || "";
-      const d = daysToSell(item);
-      daysInput.value = d === null ? "" : d;
       originalInput.value = item.original;
       currentInput.value = item.current;
       soldForInput.value = item.soldFor === null || item.soldFor === undefined ? "" : item.soldFor;
       bumpInput.checked = !!item.bump;
-      bumpPercentInput.value = item.bumpPercent || PLATFORMS[item.site].defaultPercent;
+      bumpAmountInput.value = item.bumpAmount ? item.bumpAmount : "";
       updateSoldForUI();
       updateBumpUI(false);
       submitButton.textContent = "Save changes";
@@ -800,6 +826,9 @@
       document.getElementById("name").value = found.name;
       if (found.site) siteInput.value = found.site;
       statusInput.value = "Listed";
+      photosAll.checked = true;
+      setAllPhotoBoxes(true);
+      updatePhotoUI();
       postedInput.value = todayText();
       if (found.price !== null) {
         originalInput.value = found.price;
@@ -820,7 +849,7 @@
       } else if (missing.length === 1) {
         message = "I couldn't read " + missing[0] + ". Please fill it in below, then check the rest.";
       } else {
-        message = "Read from your screenshot. Please check the name and price, and change the date posted if it wasn't today, then press Add item.";
+        message = "Read from your screenshot. Please check the name and price, and change the date posted if it wasn't today, then press Add item. All photos are marked as taken; untick that box if you still need some.";
       }
 
       const lowerName = found.name.toLowerCase();
@@ -897,20 +926,72 @@
       }
     });
 
+    // ---- lower price pop-up: 10% or 15% off suggestions, or type your own ----
+    const priceModal = document.getElementById("price-modal");
+    const priceCustom = document.getElementById("price-custom");
+    let priceTarget = null;
+
+    function closePriceModal() {
+      priceModal.hidden = true;
+      priceTarget = null;
+    }
+
+    function setPrice(item, value) {
+      if (value !== item.current) {
+        item.current = value;
+        item.priceChanged = todayText();
+        save();
+        render();
+      }
+      closePriceModal();
+    }
+
     function lowerPrice(item) {
-      const text = prompt("New price for " + item.name + " (now " + money(item.current) + "):");
-      if (text === null || text.trim() === "") return;
+      priceTarget = item;
+      document.getElementById("price-modal-title").textContent = item.name;
+      document.getElementById("price-modal-now").textContent = "Now " + money(item.current);
+
+      const box = document.getElementById("price-suggestions");
+      box.innerHTML = "";
+      [10, 15].forEach(function (percent) {
+        const value = Math.round(item.current * (100 - percent)) / 100;
+        if (item.current <= 0) return;
+        const button = el("button", "suggest");
+        button.type = "button";
+        button.appendChild(el("span", "pct", percent + "% off"));
+        const amount = el("span", "amt", money(value));
+        amount.appendChild(el("small", "", "-" + money(item.current - value)));
+        button.appendChild(amount);
+        button.onclick = function () { setPrice(item, value); };
+        box.appendChild(button);
+      });
+
+      priceCustom.value = "";
+      priceModal.hidden = false;
+    }
+
+    document.getElementById("price-set").addEventListener("click", function () {
+      if (!priceTarget) return;
+      const text = priceCustom.value.trim();
+      if (text === "") {
+        alert("Type a new price, like 18 or 18.50, or tap one of the suggestions.");
+        return;
+      }
       const value = Number(text);
       if (isNaN(value) || value < 0) {
         alert("Please enter a number, like 18 or 18.50.");
         return;
       }
-      if (value === item.current) return;
-      item.current = value;
-      item.priceChanged = todayText();
-      save();
-      render();
-    }
+      setPrice(priceTarget, value);
+    });
+
+    document.getElementById("price-cancel").addEventListener("click", closePriceModal);
+    priceModal.addEventListener("click", function (event) {
+      if (event.target === priceModal) closePriceModal();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !priceModal.hidden) closePriceModal();
+    });
 
     // ---- goals ----
     addGoalButton.addEventListener("click", function () {
@@ -1211,7 +1292,7 @@
         soldFor: soldFor,
         priceChanged: priceChanged,
         bump: bumpInput.checked,
-        bumpPercent: Number(bumpPercentInput.value) || 0
+        bumpAmount: bumpInput.checked && !PLATFORMS[siteInput.value].bumpPercent ? (Number(bumpAmountInput.value) || 0) : 0
       };
       if (editingIndex === null) {
         items.push(item);
@@ -1261,7 +1342,8 @@
           item.original.toFixed(2), item.current.toFixed(2),
           item.priceChanged || "",
           item.status === "Sold" ? salePrice(item).toFixed(2) : "",
-          item.bump ? "Yes" : "No", item.bump ? (item.bumpPercent || 0) : "",
+          item.bump ? "Yes" : "No",
+          item.bump && PLATFORMS[item.site] && PLATFORMS[item.site].bumpPercent ? PLATFORMS[item.site].bumpPercent : "",
           feeTotal(item).toFixed(2),
           item.status === "Sold" ? profitOf(item).toFixed(2) : ""
         );
