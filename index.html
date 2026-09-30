@@ -83,3 +83,91 @@
       document.getElementById("cost").value = item.cost;
       editingIndex = index;
       submitButton.textContent = "Save changes";
+      cancelButton.style.display = "inline";
+      window.scrollTo(0, 0);
+    }
+
+    function stopEdit() {
+      editingIndex = null;
+      form.reset();
+      submitButton.textContent = "Add item";
+      cancelButton.style.display = "none";
+    }
+
+    function render() {
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+      let total = 0;
+
+      items.forEach(function (item, index) {
+        const row = document.createElement("tr");
+        const profit = item.status === "Sold" ? profitOf(item) : null;
+        if (profit !== null) total += profit;
+
+        const cells = [
+          item.name,
+          item.site,
+          item.status,
+          profit === null ? "-" : "$" + profit.toFixed(2)
+        ];
+        cells.forEach(function (text) {
+          const td = document.createElement("td");
+          td.textContent = text;
+          row.appendChild(td);
+        });
+
+        const actionCell = document.createElement("td");
+
+        const editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.onclick = function () {
+          startEdit(index);
+        };
+        actionCell.appendChild(editButton);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.onclick = function () {
+          if (confirm("Delete " + item.name + "?")) {
+            items.splice(index, 1);
+            save();
+            stopEdit();
+            render();
+          }
+        };
+        actionCell.appendChild(deleteButton);
+
+        row.appendChild(actionCell);
+        list.appendChild(row);
+      });
+
+      document.getElementById("total").textContent = total.toFixed(2);
+    }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const item = {
+        name: document.getElementById("name").value,
+        site: document.getElementById("site").value,
+        status: document.getElementById("status").value,
+        price: Number(document.getElementById("price").value),
+        fees: Number(document.getElementById("fees").value),
+        shipping: Number(document.getElementById("shipping").value),
+        cost: Number(document.getElementById("cost").value)
+      };
+      if (editingIndex === null) {
+        items.push(item);
+      } else {
+        items[editingIndex] = item;
+      }
+      save();
+      render();
+      stopEdit();
+    });
+
+    cancelButton.addEventListener("click", stopEdit);
+
+    render();
+  </script>
+</body>
+</html>
