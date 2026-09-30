@@ -9,7 +9,10 @@
     label { display: block; margin: 6px 0; }
     table { width: 100%; border-collapse: collapse; margin-top: 16px; }
     th, td { border-bottom: 1px solid #ccc; padding: 6px; text-align: left; }
+    #balance-table input { width: 110px; }
     #cancel-edit { display: none; }
+    #bump-percent-row { display: none; margin-left: 24px; }
+    #bump-note { margin-left: 24px; color: #444; }
     .goal { border-bottom: 1px solid #ccc; padding: 8px 0; }
     .goal progress { width: 100%; height: 16px; }
     .done { color: #666; text-decoration: line-through; }
@@ -51,7 +54,12 @@
     <label>Date sold <input id="sold" type="date"></label>
     <label>Days to sell <input id="days" type="number" min="0" step="1"></label>
     <label>Sale price ($) <input id="price" type="number" step="0.01" min="0" value="0"></label>
-    <label>Fees ($) <input id="fees" type="number" step="0.01" min="0" value="0"></label>
+
+    <label><input type="checkbox" id="bump"> <span id="bump-label"></span></label>
+    <label id="bump-percent-row">Bump cost (% of sale price) <input id="bump-percent" type="number" step="0.1" min="0" value="12"></label>
+    <div id="bump-note"></div>
+
+    <label>Other fees ($) <input id="fees" type="number" step="0.01" min="0" value="0"></label>
     <label>Shipping ($) <input id="shipping" type="number" step="0.01" min="0" value="0"></label>
     <label>Cost ($) <input id="cost" type="number" step="0.01" min="0" value="0"></label>
     <button type="submit" id="submit-button">Add item</button>
@@ -69,6 +77,33 @@
     </div>
   </div>
 
+  <h2>Platform balances</h2>
+  <table id="balance-table">
+    <thead>
+      <tr><th>Platform</th><th>Starting balance ($)</th><th>Item profit</th><th>Total</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Depop</td>
+        <td><input id="start-Depop" type="number" step="0.01" min="0" placeholder="0.00"></td>
+        <td id="item-Depop">$0.00</td>
+        <td id="sum-Depop">$0.00</td>
+      </tr>
+      <tr>
+        <td>Vinted</td>
+        <td><input id="start-Vinted" type="number" step="0.01" min="0" placeholder="0.00"></td>
+        <td id="item-Vinted">$0.00</td>
+        <td id="sum-Vinted">$0.00</td>
+      </tr>
+      <tr>
+        <td><strong>Combined</strong></td>
+        <td id="start-all">$0.00</td>
+        <td id="item-all">$0.00</td>
+        <td id="sum-all"><strong>$0.00</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
   <h2>Goals</h2>
   <form id="goal-form">
     <label>Goal name <input id="goal-name" required></label>
@@ -77,6 +112,7 @@
   </form>
   <div id="goal-list"></div>
 
+  <h2>Item list</h2>
   <table>
     <thead>
       <tr><th>Item</th><th>Site</th><th>Status</th><th>Days to sell</th><th>Profit</th><th></th></tr>
@@ -85,8 +121,16 @@
   </table>
 
   <script>
+    // Change bump wording or the default percent for each platform here.
+    const PLATFORMS = {
+      Depop: { bumpLabel: "I bumped this listing on Depop", defaultPercent: 12 },
+      Vinted: { bumpLabel: "I bumped this listing on Vinted (3 days)", defaultPercent: 12 }
+    };
+    const PLATFORM_NAMES = Object.keys(PLATFORMS);
+
     let items = [];
     let goals = [];
+    let balances = {};
     let editingIndex = null;
 
     try {
@@ -99,24 +143,69 @@
     } catch (e) {
       goals = [];
     }
+    try {
+      balances = JSON.parse(localStorage.getItem("balances")) || {};
+    } catch (e) {
+      balances = {};
+    }
 
     const form = document.getElementById("item-form");
     const submitButton = document.getElementById("submit-button");
     const cancelButton = document.getElementById("cancel-edit");
+    const siteInput = document.getElementById("site");
+    const priceInput = document.getElementById("price");
     const postedInput = document.getElementById("posted");
     const soldInput = document.getElementById("sold");
     const daysInput = document.getElementById("days");
+    const bumpInput = document.getElementById("bump");
+    const bumpPercentInput = document.getElementById("bump-percent");
+    const bumpPercentRow = document.getElementById("bump-percent-row");
+    const bumpNote = document.getElementById("bump-note");
 
     function save() {
       try {
         localStorage.setItem("items", JSON.stringify(items));
         localStorage.setItem("goals", JSON.stringify(goals));
+        localStorage.setItem("balances", JSON.stringify(balances));
       } catch (e) {}
     }
 
-    function profitOf(item) {
-      return item.price - item.fees - item.shipping - item.cost;
+    function money(n) {
+      return (n < 0 ? "-" : "") + "$" + Math.abs(n).toFixed(2);
     }
+
+    // ---- fees and profit ----
+    function bumpCost(price, percent) {
+      return Math.round(price * percent) / 100;
+    }
+
+    function feeTotal(item) {
+      const bump = item.bump ? bumpCost(item.price, item.bumpPercent || 0) : 0;
+      return (item.fees || 0) + bump;
+    }
+
+    function profitOf(item) {
+      return item.price - feeTotal(item) - item.shipping - item.cost;
+    }
+
+    // ---- bump options that change with the platform ----
+    function updateBumpUI(resetPercent) {
+      const config = PLATFORMS[siteInput.value];
+      document.getElementById("bump-label").textContent = config.bumpLabel;
+      if (resetPercent) bumpPercentInput.value = config.defaultPercent;
+      bumpPercentRow.style.display = bumpInput.checked ? "block" : "none";
+      if (bumpInput.checked) {
+        const cost = bumpCost(Number(priceInput.value) || 0, Number(bumpPercentInput.value) || 0);
+        bumpNote.textContent = "Bump cost: $" + cost.toFixed(2);
+      } else {
+        bumpNote.textContent = "";
+      }
+    }
+
+    siteInput.addEventListener("change", function () { updateBumpUI(true); });
+    bumpInput.addEventListener("change", function () { updateBumpUI(false); });
+    priceInput.addEventListener("input", function () { updateBumpUI(false); });
+    bumpPercentInput.addEventListener("input", function () { updateBumpUI(false); });
 
     // ---- date helpers ----
     function parseDate(text) {
@@ -165,6 +254,7 @@
     function cancelEdit() {
       editingIndex = null;
       form.reset();
+      updateBumpUI(true);
       submitButton.textContent = "Add item";
       cancelButton.style.display = "none";
     }
@@ -173,20 +263,34 @@
       const item = items[index];
       editingIndex = index;
       document.getElementById("name").value = item.name;
-      document.getElementById("site").value = item.site;
+      siteInput.value = item.site;
       document.getElementById("status").value = item.status;
       postedInput.value = item.posted || "";
       soldInput.value = item.sold || "";
       const d = daysToSell(item);
       daysInput.value = d === null ? "" : d;
-      document.getElementById("price").value = item.price;
-      document.getElementById("fees").value = item.fees;
+      priceInput.value = item.price;
+      bumpInput.checked = !!item.bump;
+      bumpPercentInput.value = item.bumpPercent || PLATFORMS[item.site].defaultPercent;
+      document.getElementById("fees").value = item.fees || 0;
       document.getElementById("shipping").value = item.shipping;
       document.getElementById("cost").value = item.cost;
+      updateBumpUI(false);
       submitButton.textContent = "Save changes";
       cancelButton.style.display = "inline";
       window.scrollTo(0, 0);
     }
+
+    // ---- starting balances (typed by you) ----
+    PLATFORM_NAMES.forEach(function (name) {
+      const input = document.getElementById("start-" + name);
+      input.value = balances[name] ? balances[name] : "";
+      input.addEventListener("input", function () {
+        balances[name] = Number(input.value) || 0;
+        save();
+        render();
+      });
+    });
 
     function renderGoals(balance) {
       const goalList = document.getElementById("goal-list");
@@ -243,12 +347,17 @@
     function render() {
       const list = document.getElementById("list");
       list.innerHTML = "";
-      let total = 0;
+      let itemTotal = 0;
+      const itemByPlatform = {};
+      PLATFORM_NAMES.forEach(function (name) { itemByPlatform[name] = 0; });
 
       items.forEach(function (item, index) {
         const row = document.createElement("tr");
         const profit = item.status === "Sold" ? profitOf(item) : null;
-        if (profit !== null) total += profit;
+        if (profit !== null) {
+          itemTotal += profit;
+          if (itemByPlatform[item.site] !== undefined) itemByPlatform[item.site] += profit;
+        }
 
         const d = daysToSell(item);
         const cells = [
@@ -256,7 +365,7 @@
           item.site,
           item.status,
           d === null ? "-" : d + (d === 1 ? " day" : " days"),
-          profit === null ? "-" : "$" + profit.toFixed(2)
+          profit === null ? "-" : money(profit)
         ];
         cells.forEach(function (text) {
           const td = document.createElement("td");
@@ -289,6 +398,19 @@
         list.appendChild(row);
       });
 
+      let startTotal = 0;
+      PLATFORM_NAMES.forEach(function (name) {
+        const start = balances[name] || 0;
+        startTotal += start;
+        document.getElementById("item-" + name).textContent = money(itemByPlatform[name]);
+        document.getElementById("sum-" + name).textContent = money(start + itemByPlatform[name]);
+      });
+
+      const total = itemTotal + startTotal;
+      document.getElementById("start-all").textContent = money(startTotal);
+      document.getElementById("item-all").textContent = money(itemTotal);
+      document.getElementById("sum-all").textContent = money(total);
+
       let spent = 0;
       goals.forEach(function (goal) {
         if (goal.purchased) spent += goal.amount;
@@ -310,11 +432,13 @@
 
       const item = {
         name: document.getElementById("name").value,
-        site: document.getElementById("site").value,
+        site: siteInput.value,
         status: document.getElementById("status").value,
         posted: postedInput.value,
         sold: soldInput.value,
-        price: Number(document.getElementById("price").value),
+        price: Number(priceInput.value),
+        bump: bumpInput.checked,
+        bumpPercent: Number(bumpPercentInput.value) || 0,
         fees: Number(document.getElementById("fees").value),
         shipping: Number(document.getElementById("shipping").value),
         cost: Number(document.getElementById("cost").value)
@@ -350,13 +474,15 @@
     }
 
     document.getElementById("export-button").addEventListener("click", function () {
-      const rows = [["Item", "Site", "Status", "Date posted", "Date sold", "Days to sell", "Sale price", "Fees", "Shipping", "Cost", "Profit"]];
+      const rows = [["Item", "Site", "Status", "Date posted", "Date sold", "Days to sell", "Sale price", "Other fees", "Bumped", "Bump %", "Total fees", "Shipping", "Cost", "Profit"]];
       items.forEach(function (item) {
         const d = daysToSell(item);
         rows.push([
           item.name, item.site, item.status,
           item.posted || "", item.sold || "", d === null ? "" : d,
-          item.price.toFixed(2), item.fees.toFixed(2),
+          item.price.toFixed(2), (item.fees || 0).toFixed(2),
+          item.bump ? "Yes" : "No", item.bump ? (item.bumpPercent || 0) : "",
+          feeTotal(item).toFixed(2),
           item.shipping.toFixed(2), item.cost.toFixed(2),
           item.status === "Sold" ? profitOf(item).toFixed(2) : ""
         ]);
@@ -369,6 +495,7 @@
       link.click();
     });
 
+    updateBumpUI(true);
     render();
   </script>
 </body>
