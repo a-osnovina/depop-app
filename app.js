@@ -683,42 +683,342 @@ goalForm.addEventListener("submit", function (event) {
   addGoalButton.textContent = "+ Add goal";
 });
 
+// ---- backup: export everything to one CSV file, and import it back ----
+// One file holds three kinds of rows: Item, Goal and Balance (see the Type column).
+// The "Bump cost", "Profit" and "Days to sell" columns are only for reading in a spreadsheet;
+// the import ignores them and works them out again from the other columns.
+const BACKUP_HEADER = ["Type", "Name", "Site", "Status"]
+  .concat(PHOTO_TYPES.map(function (type) { return "Photo: " + type.label; }))
+  .concat(["Date posted", "Date sold", "Days to sell", "Original price", "Current price",
+    "Last price change", "Sold for", "Bumped", "Bump %", "Bump cost", "Profit", "Amount", "Purchased"]);
+
 function csvCell(value) {
   let text = String(value);
   if (/^[=+\-@]/.test(text)) text = "'" + text;
   return '"' + text.replace(/"/g, '""') + '"';
 }
 
-document.getElementById("export-button").addEventListener("click", function () {
-  const header = ["Item", "Site", "Status"];
-  PHOTO_TYPES.forEach(function (type) { header.push("Photo: " + type.label); });
-  header.push("Date posted", "Date sold", "Days to sell", "Original price", "Current price", "Last price change", "Sold for", "Bumped", "Bump %", "Bump cost", "Profit");
-  const rows = [header];
+function makeRow(values) {
+  return BACKUP_HEADER.map(function (name) {
+    return values[name] === undefined ? "" : values[name];
+  });
+}
+
+function buildCsv() {
+  const rows = [BACKUP_HEADER];
 
   items.forEach(function (item) {
     const d = daysToSell(item);
-    const row = [item.name, item.site, item.status];
+    const values = {
+      "Type": "Item",
+      "Name": item.name,
+      "Site": item.site,
+      "Status": item.status,
+      "Date posted": item.posted || "",
+      "Date sold": item.sold || "",
+      "Days to sell": d === null ? "" : d,
+      "Original price": item.original.toFixed(2),
+      "Current price": item.current.toFixed(2),
+      "Last price change": item.priceChanged || "",
+      "Sold for": item.status === "Sold" ? salePrice(item).toFixed(2) : "",
+      "Bumped": item.bump ? "Yes" : "No",
+      "Bump %": item.bump ? (item.bumpPercent || 0) : "",
+      "Bump cost": feeTotal(item).toFixed(2),
+      "Profit": item.status === "Sold" ? profitOf(item).toFixed(2) : ""
+    };
     PHOTO_TYPES.forEach(function (type) {
-      row.push(item.photos && item.photos[type.key] ? "Yes" : "No");
+      values["Photo: " + type.label] = item.photos && item.photos[type.key] ? "Yes" : "No";
     });
-    row.push(
-      item.posted || "", item.sold || "", d === null ? "" : d,
-      item.original.toFixed(2), item.current.toFixed(2),
-      item.priceChanged || "",
-      item.status === "Sold" ? salePrice(item).toFixed(2) : "",
-      item.bump ? "Yes" : "No", item.bump ? (item.bumpPercent || 0) : "",
-      feeTotal(item).toFixed(2),
-      item.status === "Sold" ? profitOf(item).toFixed(2) : ""
-    );
-    rows.push(row);
+    rows.push(makeRow(values));
   });
 
-  const csv = rows.map(function (r) { return r.map(csvCell).join(","); }).join("\n");
-  const blob = new Blob([csv], { type: "text/csv" });
+  goals.forEach(function (goal) {
+    rows.push(makeRow({
+      "Type": "Goal",
+      "Name": goal.name,
+      "Amount": goal.amount.toFixed(2),
+      "Purchased": goal.purchased ? "Yes" : "No"
+    }));
+  });
+
+  PLATFORM_NAMES.forEach(function (name) {
+    rows.push(makeRow({
+      "Type": "Balance",
+      "Name": name,
+      "Amount": (balances[name] || 0).toFixed(2)
+    }));
+  });
+
+  return rows.map(function (r) { return r.map(csvCell).join(","); }).join("\n");
+}
+
+// Turns CSV text into a list of rows. Handles quotes, commas and line breaks inside quotes.
+function parseCsv(text) {
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          cell += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        cell += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ",") {
+      row.push(cell);
+      cell = "";
+    } else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell);
+      cell = "";
+      rows.push(row);
+      row = [];
+    } else {
+      cell += ch;
+    }
+  }
+  if (cell !== "" || row.length > 0) {
+    row.push(cell);
+    rows.push(row);
+  }
+  return rows;
+}
+
+// Checks the whole file first. Returns { items, goals, balances } or { error }.
+// Nothing in the app is touched here.
+function readBackup(text) {
+  const rows = parseCsv(text);
+  if (rows.length === 0) return { error: "That file is empty. Nothing was changed." };
+
+  const col = {};
+  rows[0].forEach(function (name, i) { col[name.trim().toLowerCase()] = i; });
+  if (col["type"] === undefined || col["name"] === undefined) {
+    return { error: "This doesn't look like a backup from this app (it has no Type and Name columns). Nothing was changed." };
+  }
+
+  const problems = [];
+  function problem(line, message) {
+    problems.push("Row " + line + ": " + message);
+  }
+
+  function get(row, name) {
+    const i = col[name.toLowerCase()];
+    return i === undefined || row[i] === undefined ? "" : row[i].trim();
+  }
+
+  // Export adds a ' in front of text that starts with = + - or @ (to keep spreadsheets safe). Remove it.
+  function unguard(text) {
+    return /^'[=+\-@]/.test(text) ? text.slice(1) : text;
+  }
+
+  function isYes(text) {
+    return /^(yes|y|true|1)$/i.test(text);
+  }
+
+  function matchName(list, text) {
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].toLowerCase() === text.toLowerCase()) return list[i];
+    }
+    return null;
+  }
+
+  // Blank gives the fallback. A bad amount is reported and gives NaN.
+  function readNumber(line, label, text, fallback) {
+    if (text === "") return fallback;
+    const n = Number(text.replace(/[$,\s]/g, ""));
+    if (isNaN(n) || n < 0) {
+      problem(line, label + " '" + text + "' is not a valid amount");
+      return NaN;
+    }
+    return n;
+  }
+
+  // Accepts 2026-09-30 and also 9/30/2026 or 9/30/26 (what a spreadsheet may turn dates into).
+  function readDate(line, label, text) {
+    if (text === "") return "";
+    let y, m, d, match;
+    if ((match = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T].*)?$/.exec(text))) {
+      y = Number(match[1]);
+      m = Number(match[2]);
+      d = Number(match[3]);
+    } else if ((match = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(text))) {
+      m = Number(match[1]);
+      d = Number(match[2]);
+      y = Number(match[3]);
+      if (y < 100) y += 2000;
+    } else {
+      problem(line, label + " '" + text + "' is not a date I can read (use YYYY-MM-DD)");
+      return "";
+    }
+    const check = new Date(Date.UTC(y, m - 1, d));
+    if (check.getUTCFullYear() !== y || check.getUTCMonth() !== m - 1 || check.getUTCDate() !== d) {
+      problem(line, label + " '" + text + "' is not a real date");
+      return "";
+    }
+    return y + "-" + pad(m) + "-" + pad(d);
+  }
+
+  const newItems = [];
+  const newGoals = [];
+  const newBalances = {};
+
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    const line = r + 1;
+    if (!row.some(function (c) { return c.trim() !== ""; })) continue;
+
+    const kind = get(row, "Type").toLowerCase();
+    const name = unguard(get(row, "Name"));
+
+    if (kind === "item") {
+      if (name === "") { problem(line, "this item has no name"); continue; }
+
+      const site = matchName(PLATFORM_NAMES, get(row, "Site"));
+      if (!site) { problem(line, "Site '" + get(row, "Site") + "' must be " + PLATFORM_NAMES.join(" or ")); continue; }
+
+      const status = matchName(STATUSES, get(row, "Status"));
+      if (!status) { problem(line, "Status '" + get(row, "Status") + "' must be " + STATUSES.join(", ")); continue; }
+
+      const photos = {};
+      PHOTO_TYPES.forEach(function (type) {
+        photos[type.key] = isYes(get(row, "Photo: " + type.label));
+      });
+
+      const posted = readDate(line, "Date posted", get(row, "Date posted"));
+      const sold = readDate(line, "Date sold", get(row, "Date sold"));
+      if (posted && sold && dayDiff(posted, sold) < 0) problem(line, "the sold date is earlier than the posted date");
+
+      const original = readNumber(line, "Original price", get(row, "Original price"), 0);
+      const current = readNumber(line, "Current price", get(row, "Current price"), original);
+      const soldForText = get(row, "Sold for");
+      const soldFor = status === "Sold" && soldForText !== "" ? readNumber(line, "Sold for", soldForText, null) : null;
+      const bump = isYes(get(row, "Bumped"));
+      const bumpPercent = readNumber(line, "Bump %", get(row, "Bump %"), PLATFORMS[site].defaultPercent);
+
+      newItems.push({
+        name: name,
+        site: site,
+        status: status,
+        photos: photos,
+        posted: posted,
+        sold: sold,
+        original: original,
+        current: current,
+        soldFor: soldFor,
+        priceChanged: readDate(line, "Last price change", get(row, "Last price change")),
+        bump: bump,
+        bumpPercent: bumpPercent
+      });
+    } else if (kind === "goal") {
+      if (name === "") { problem(line, "this goal has no name"); continue; }
+      const amount = readNumber(line, "Amount", get(row, "Amount"), 0);
+      if (amount <= 0) problem(line, "the goal amount must be above 0");
+      newGoals.push({ name: name, amount: amount, purchased: isYes(get(row, "Purchased")) });
+    } else if (kind === "balance") {
+      const platform = matchName(PLATFORM_NAMES, name);
+      if (!platform) { problem(line, "the Balance name '" + name + "' must be " + PLATFORM_NAMES.join(" or ")); continue; }
+      newBalances[platform] = readNumber(line, "Amount", get(row, "Amount"), 0);
+    } else {
+      problem(line, "Type '" + get(row, "Type") + "' must be Item, Goal or Balance");
+    }
+  }
+
+  if (problems.length > 0) {
+    const more = problems.length > 8 ? "\n...and " + (problems.length - 8) + " more." : "";
+    return { error: "I found problems in that file, so nothing was changed:\n\n" + problems.slice(0, 8).join("\n") + more };
+  }
+  if (newItems.length === 0 && newGoals.length === 0 && Object.keys(newBalances).length === 0) {
+    return { error: "That file has no items, goals or balances in it, so nothing was changed." };
+  }
+  return { items: newItems, goals: newGoals, balances: newBalances };
+}
+
+// Replaces everything in the app with the contents of a backup file.
+function applyBackup(text) {
+  const result = readBackup(text);
+  if (result.error) {
+    alert(result.error);
+    return;
+  }
+
+  const message = "This will REPLACE everything in the app with the file:\n\n" +
+    "File: " + result.items.length + " items, " + result.goals.length + " goals\n" +
+    "App now: " + items.length + " items, " + goals.length + " goals (these will be erased)\n\n" +
+    "Not sure? Tap Cancel and use Export CSV first.\n\nContinue?";
+  if (!confirm(message)) return;
+
+  items = result.items;
+  goals = result.goals;
+  balances = result.balances;
+  PLATFORM_NAMES.forEach(function (name) {
+    document.getElementById("start-" + name).value = balances[name] ? balances[name] : "";
+  });
+  closeForm();
+  save();
+  render();
+  alert("Done. Imported " + items.length + " items and " + goals.length + " goals.");
+}
+
+function downloadBlob(blob, filename) {
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = "resale-items.csv";
+  link.download = filename;
   link.click();
+}
+
+// On iPhone the Share menu is the reliable way to save a file (choose "Save to Files").
+// Everywhere else this is a normal download.
+function deliverFile(blob, filename) {
+  const isIPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  try {
+    const file = new File([blob], filename, { type: "text/csv" });
+    if (isIPhone && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file] }).catch(function (e) {
+        if (!e || e.name !== "AbortError") downloadBlob(blob, filename);
+      });
+      return;
+    }
+  } catch (e) {}
+  downloadBlob(blob, filename);
+}
+
+document.getElementById("export-button").addEventListener("click", function () {
+  // The invisible mark at the start makes spreadsheets read names and emoji correctly.
+  const blob = new Blob(["\uFEFF" + buildCsv()], { type: "text/csv" });
+  deliverFile(blob, "resale-backup-" + todayText() + ".csv");
+});
+
+const importButton = document.getElementById("import-button");
+const importFile = document.getElementById("import-file");
+
+importButton.addEventListener("click", function () {
+  importFile.click();
+});
+
+importFile.addEventListener("change", function () {
+  const file = importFile.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function () {
+    importFile.value = "";
+    applyBackup(String(reader.result));
+  };
+  reader.onerror = function () {
+    importFile.value = "";
+    alert("Sorry, I couldn't read that file.");
+  };
+  reader.readAsText(file);
 });
 
 closeForm();
