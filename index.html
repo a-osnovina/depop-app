@@ -13,10 +13,21 @@
     .goal { border-bottom: 1px solid #ccc; padding: 8px 0; }
     .goal progress { width: 100%; height: 16px; }
     .done { color: #666; text-decoration: line-through; }
+
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .summary { display: flex; flex-wrap: wrap; gap: 24px; background: #eeeeee; border-radius: 8px; padding: 14px 18px; margin: 16px 0; }
+    .stat { display: flex; flex-direction: column; }
+    .stat-label { font-size: 14px; color: #444; }
+    .stat-value { font-size: 26px; font-weight: bold; }
+    .profit { color: #1a7f37; }
+    .balance { color: #0b5cad; }
   </style>
 </head>
 <body>
-  <h1>Resale Tracker</h1>
+  <div class="top">
+    <h1>Resale Tracker</h1>
+    <button type="button" id="export-button">Export CSV</button>
+  </div>
 
   <h2>Items</h2>
   <form id="item-form">
@@ -43,9 +54,16 @@
     <button type="button" id="cancel-edit">Cancel edit</button>
   </form>
 
-  <h2>Total profit: $<span id="total">0.00</span></h2>
-  <h3>Available balance: $<span id="balance">0.00</span></h3>
-  <button type="button" id="export-button">Export CSV</button>
+  <div class="summary">
+    <div class="stat">
+      <span class="stat-label">Total profit</span>
+      <span class="stat-value profit">$<span id="total">0.00</span></span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Available balance</span>
+      <span class="stat-value balance">$<span id="balance">0.00</span></span>
+    </div>
+  </div>
 
   <h2>Goals</h2>
   <form id="goal-form">
