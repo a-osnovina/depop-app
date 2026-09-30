@@ -4,14 +4,63 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Resale Tracker</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Resale">
-  <meta name="theme-color" content="#0b5cad">
+  <style>
+    body { font-family: sans-serif; max-width: 760px; margin: 0 auto; padding: 0 16px 24px; }
+    label { display: block; margin: 6px 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border-bottom: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; }
+    #balance-table input { width: 110px; }
+    #item-form, #goal-form { display: none; border: 1px solid #ccc; border-radius: 8px; padding: 6px 14px 12px; margin: 10px 0; }
+    #item-form { scroll-margin-top: 130px; }
+    #bump-percent-row { display: none; margin-left: 24px; }
+    #sold-for-row { display: none; }
+    #bump-note { margin-left: 24px; color: #444; }
+    fieldset { margin: 10px 0; }
+    fieldset label { display: inline-block; margin-right: 12px; }
+    .photo-ok { color: #1a7f37; font-weight: bold; }
+    .photo-partial { color: #666; }
+    .small { font-size: 12px; color: #555; }
+    .due { font-size: 12px; color: #b42318; font-weight: bold; }
+    #reduce-banner { display: none; background: #fdecea; color: #b42318; border-radius: 6px; padding: 8px 12px; margin-top: 10px; }
+    .section-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 22px; }
+    .section-head h2 { margin: 0; }
+    #import-note { display: none; background: #e8f3ff; color: #0b3d75; border-radius: 6px; padding: 8px 12px; margin-top: 10px; }
+    #import-note.warn { background: #fff4d6; color: #6b4a00; }
+    #import-raw { display: none; margin-top: 6px; font-size: 12px; color: #555; }
+    #import-raw pre { white-space: pre-wrap; background: #f6f6f6; padding: 8px; border-radius: 6px; margin: 6px 0 0; }
+    .list-tools { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+    .list-tools label { margin: 0; }
+    #remind-days { width: 60px; }
+    .count-right { text-align: right; margin-top: 6px; }
+    .row-progress { background: #fff4d6; }
+    .row-listed { background: #e0efff; }
+    .row-sold { background: #dff3e3; }
+    .goal { border-bottom: 1px solid #ccc; padding: 8px 0; }
+    .goal progress { width: 100%; height: 16px; }
+    .done { color: #666; text-decoration: line-through; }
+    details summary { cursor: pointer; }
+    #purchased-goals { display: none; margin-top: 10px; }
+    #purchased-goals > summary { color: #444; }
+    #no-goals { color: #666; margin-top: 8px; }
+    #overall-box { display: none; padding-bottom: 10px; border-bottom: 2px solid #ccc; margin-bottom: 4px; }
+    #overall-box progress { width: 100%; height: 18px; }
+    .panel-row { margin: 10px 0 4px; }
+
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .summary { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 24px; background: #eeeeee; border-radius: 0 0 8px 8px; padding: 10px 18px; margin: 0 0 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
+    .stat { display: flex; flex-direction: column; }
+    .stat-label { font-size: 14px; color: #444; }
+    .stat-value { font-size: 20px; font-weight: bold; }
+    .main .stat-value { font-size: 38px; }
+    .profit { color: #1a7f37; }
+    .balance { color: #0b5cad; }
+
+    .side { margin-left: auto; align-self: center; display: flex; flex-direction: column; gap: 6px; }
+    .side > details > summary { color: #0b5cad; font-size: 14px; font-weight: bold; }
+    #goals-mini { display: none; }
+    #goals-mini progress { width: 170px; height: 10px; display: block; }
+    .dropdown-panel { position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid #ccc; border-radius: 0 0 8px 8px; padding: 6px 14px 12px; max-height: 60vh; overflow: auto; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
+  </style>
 </head>
 <body>
   <div class="summary">
@@ -93,18 +142,21 @@
 
   <div class="top">
     <h1>Resale Tracker</h1>
-    <div>
-      <button type="button" id="export-button">Export CSV</button>
-      <button type="button" id="import-button">Import CSV</button>
-      <input type="file" id="import-file" accept=".csv,text/csv" hidden>
-    </div>
+    <button type="button" id="export-button">Export CSV</button>
   </div>
 
   <!-- ITEM LIST -->
   <div class="section-head">
     <h2>Item list</h2>
     <button type="button" id="add-item-button">+ Add item</button>
+    <button type="button" id="import-button">Import from screenshot</button>
+    <input type="file" id="import-file" accept="image/*" hidden>
   </div>
+  <div id="import-note"></div>
+  <details id="import-raw">
+    <summary>What the app read from the screenshot</summary>
+    <pre id="import-raw-text"></pre>
+  </details>
 
   <form id="item-form">
     <label>Item name <input id="name" required></label>
@@ -172,6 +224,905 @@
   </table>
   <div id="list-count" class="small count-right"></div>
 
-  <script src="app.js"></script>
+  <script>
+    // Change bump wording or the default percent for each platform here.
+    const PLATFORMS = {
+      Depop: { bumpLabel: "I bumped this listing on Depop", defaultPercent: 12 },
+      Vinted: { bumpLabel: "I bumped this listing on Vinted (3 days)", defaultPercent: 12 }
+    };
+    const PLATFORM_NAMES = Object.keys(PLATFORMS);
+
+    const STATUSES = ["In progress", "Listed", "Sold"];
+    const STATUS_CLASS = { "In progress": "row-progress", "Listed": "row-listed", "Sold": "row-sold" };
+
+    // Add or rename photo types here.
+    const PHOTO_TYPES = [
+      { key: "tag", label: "Tag" },
+      { key: "front", label: "Front" },
+      { key: "back", label: "Back" },
+      { key: "sleeves", label: "Sleeves" },
+      { key: "care", label: "Care instructions" }
+    ];
+
+    // The screenshot reader (Tesseract.js) is only downloaded when you first import a screenshot.
+    const OCR_SCRIPT = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+
+    let items = [];
+    let goals = [];
+    let balances = {};
+    let editingIndex = null;
+    let filter = "All";
+    let statusFilter = "All";
+    let remindDays = 7;
+
+    try {
+      items = JSON.parse(localStorage.getItem("items")) || [];
+    } catch (e) {
+      items = [];
+    }
+    try {
+      goals = JSON.parse(localStorage.getItem("goals")) || [];
+    } catch (e) {
+      goals = [];
+    }
+    try {
+      balances = JSON.parse(localStorage.getItem("balances")) || {};
+    } catch (e) {
+      balances = {};
+    }
+    try {
+      const savedFilter = localStorage.getItem("filter");
+      if (savedFilter === "Depop" || savedFilter === "Vinted") filter = savedFilter;
+      const savedStatusFilter = localStorage.getItem("statusFilter");
+      if (STATUSES.indexOf(savedStatusFilter) !== -1) statusFilter = savedStatusFilter;
+      const savedRemind = Number(localStorage.getItem("remindDays"));
+      if (savedRemind >= 1) remindDays = savedRemind;
+    } catch (e) {}
+
+    // Convert older saved items to the newer format.
+    items.forEach(function (item) {
+      if (STATUSES.indexOf(item.status) === -1) item.status = "In progress";
+      if (!item.photos) item.photos = {};
+      if (item.original === undefined) item.original = Number(item.price) || 0;
+      if (item.current === undefined) item.current = Number(item.price) || 0;
+      if (item.soldFor === undefined) item.soldFor = item.status === "Sold" ? (Number(item.price) || 0) : null;
+      if (!item.priceChanged) item.priceChanged = "";
+    });
+
+    const form = document.getElementById("item-form");
+    const addItemButton = document.getElementById("add-item-button");
+    const importButton = document.getElementById("import-button");
+    const importFile = document.getElementById("import-file");
+    const importNote = document.getElementById("import-note");
+    const importRaw = document.getElementById("import-raw");
+    const importRawText = document.getElementById("import-raw-text");
+    const submitButton = document.getElementById("submit-button");
+    const cancelButton = document.getElementById("cancel-edit");
+    const siteInput = document.getElementById("site");
+    const statusInput = document.getElementById("status");
+    const originalInput = document.getElementById("original");
+    const currentInput = document.getElementById("current");
+    const soldForInput = document.getElementById("sold-for");
+    const soldForRow = document.getElementById("sold-for-row");
+    const postedInput = document.getElementById("posted");
+    const soldInput = document.getElementById("sold");
+    const daysInput = document.getElementById("days");
+    const bumpInput = document.getElementById("bump");
+    const bumpPercentInput = document.getElementById("bump-percent");
+    const bumpPercentRow = document.getElementById("bump-percent-row");
+    const bumpNote = document.getElementById("bump-note");
+    const filterInput = document.getElementById("filter");
+    const statusFilterInput = document.getElementById("status-filter");
+    const remindInput = document.getElementById("remind-days");
+    const goalForm = document.getElementById("goal-form");
+    const addGoalButton = document.getElementById("add-goal-button");
+    const balancesBox = document.getElementById("balances");
+    const goalsBox = document.getElementById("goals-box");
+
+    function save() {
+      try {
+        localStorage.setItem("items", JSON.stringify(items));
+        localStorage.setItem("goals", JSON.stringify(goals));
+        localStorage.setItem("balances", JSON.stringify(balances));
+        localStorage.setItem("filter", filter);
+        localStorage.setItem("statusFilter", statusFilter);
+        localStorage.setItem("remindDays", String(remindDays));
+      } catch (e) {}
+    }
+
+    function money(n) {
+      return (n < 0 ? "-" : "") + "$" + Math.abs(n).toFixed(2);
+    }
+
+    // ---- photo checklist ----
+    const photoBoxes = document.getElementById("photo-boxes");
+    PHOTO_TYPES.forEach(function (type) {
+      const label = document.createElement("label");
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.id = "photo-" + type.key;
+      label.appendChild(box);
+      label.appendChild(document.createTextNode(" " + type.label));
+      photoBoxes.appendChild(label);
+    });
+
+    function photoCount(item) {
+      let count = 0;
+      PHOTO_TYPES.forEach(function (type) {
+        if (item.photos && item.photos[type.key]) count++;
+      });
+      return count;
+    }
+
+    // ---- prices and profit ----
+    function salePrice(item) {
+      return item.soldFor !== null && item.soldFor !== undefined ? item.soldFor : item.current;
+    }
+
+    function bumpCost(price, percent) {
+      return Math.round(price * percent) / 100;
+    }
+
+    function feeTotal(item) {
+      return item.bump ? bumpCost(salePrice(item), item.bumpPercent || 0) : 0;
+    }
+
+    function profitOf(item) {
+      return salePrice(item) - feeTotal(item);
+    }
+
+    // The price used for the bump preview while you fill in the form.
+    function formPrice() {
+      if (statusInput.value === "Sold" && soldForInput.value !== "") return Number(soldForInput.value) || 0;
+      if (currentInput.value !== "") return Number(currentInput.value) || 0;
+      return Number(originalInput.value) || 0;
+    }
+
+    function updateSoldForUI() {
+      soldForRow.style.display = statusInput.value === "Sold" ? "block" : "none";
+    }
+
+    // ---- bump options that change with the platform ----
+    function updateBumpUI(resetPercent) {
+      const config = PLATFORMS[siteInput.value];
+      document.getElementById("bump-label").textContent = config.bumpLabel;
+      if (resetPercent) bumpPercentInput.value = config.defaultPercent;
+      bumpPercentRow.style.display = bumpInput.checked ? "block" : "none";
+      if (bumpInput.checked) {
+        const cost = bumpCost(formPrice(), Number(bumpPercentInput.value) || 0);
+        bumpNote.textContent = "Bump cost: $" + cost.toFixed(2);
+      } else {
+        bumpNote.textContent = "";
+      }
+    }
+
+    siteInput.addEventListener("change", function () { updateBumpUI(true); });
+    statusInput.addEventListener("change", function () { updateSoldForUI(); updateBumpUI(false); });
+    bumpInput.addEventListener("change", function () { updateBumpUI(false); });
+    originalInput.addEventListener("input", function () { updateBumpUI(false); });
+    currentInput.addEventListener("input", function () { updateBumpUI(false); });
+    soldForInput.addEventListener("input", function () { updateBumpUI(false); });
+    bumpPercentInput.addEventListener("input", function () { updateBumpUI(false); });
+
+    // ---- date helpers ----
+    function pad(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function todayText() {
+      const now = new Date();
+      return now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
+    }
+
+    function parseDate(text) {
+      const p = text.split("-");
+      return Date.UTC(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    }
+
+    function formatDate(ms) {
+      return new Date(ms).toISOString().slice(0, 10);
+    }
+
+    function dayDiff(fromText, toText) {
+      return Math.round((parseDate(toText) - parseDate(fromText)) / 86400000);
+    }
+
+    function daysToSell(item) {
+      if (!item.posted || !item.sold) return null;
+      return dayDiff(item.posted, item.sold);
+    }
+
+    // Days a listed item has been at its current price (since the last price change, or since posting).
+    function daysAtPrice(item) {
+      if (item.status !== "Listed") return null;
+      const start = item.priceChanged || item.posted;
+      if (!start) return null;
+      return Math.max(0, dayDiff(start, todayText()));
+    }
+
+    function isDue(item) {
+      const d = daysAtPrice(item);
+      return d !== null && d >= remindDays;
+    }
+
+    // ---- keep the three date fields in sync ----
+    function soldFromDays() {
+      if (postedInput.value && daysInput.value !== "") {
+        soldInput.value = formatDate(parseDate(postedInput.value) + Number(daysInput.value) * 86400000);
+      }
+    }
+
+    daysInput.addEventListener("input", soldFromDays);
+
+    soldInput.addEventListener("input", function () {
+      if (soldInput.value === "") {
+        daysInput.value = "";
+      } else if (postedInput.value) {
+        daysInput.value = dayDiff(postedInput.value, soldInput.value);
+      }
+    });
+
+    postedInput.addEventListener("input", function () {
+      if (postedInput.value && soldInput.value) {
+        daysInput.value = dayDiff(postedInput.value, soldInput.value);
+      } else {
+        soldFromDays();
+      }
+    });
+
+    // ---- show and hide the item form ----
+    function showForm() {
+      form.style.display = "block";
+      addItemButton.textContent = "Close form";
+    }
+
+    function closeForm() {
+      editingIndex = null;
+      form.reset();
+      updateSoldForUI();
+      updateBumpUI(true);
+      submitButton.textContent = "Add item";
+      form.style.display = "none";
+      addItemButton.textContent = "+ Add item";
+    }
+
+    addItemButton.addEventListener("click", function () {
+      hideImportNote();
+      if (form.style.display === "block") {
+        closeForm();
+      } else {
+        editingIndex = null;
+        showForm();
+        document.getElementById("name").focus();
+      }
+    });
+
+    cancelButton.addEventListener("click", function () {
+      hideImportNote();
+      closeForm();
+    });
+
+    function startEdit(index) {
+      const item = items[index];
+      hideImportNote();
+      editingIndex = index;
+      document.getElementById("name").value = item.name;
+      siteInput.value = item.site;
+      statusInput.value = item.status;
+      PHOTO_TYPES.forEach(function (type) {
+        document.getElementById("photo-" + type.key).checked = !!(item.photos && item.photos[type.key]);
+      });
+      postedInput.value = item.posted || "";
+      soldInput.value = item.sold || "";
+      const d = daysToSell(item);
+      daysInput.value = d === null ? "" : d;
+      originalInput.value = item.original;
+      currentInput.value = item.current;
+      soldForInput.value = item.soldFor === null || item.soldFor === undefined ? "" : item.soldFor;
+      bumpInput.checked = !!item.bump;
+      bumpPercentInput.value = item.bumpPercent || PLATFORMS[item.site].defaultPercent;
+      updateSoldForUI();
+      updateBumpUI(false);
+      submitButton.textContent = "Save changes";
+      showForm();
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // ---- import a listing from a screenshot ----
+    // The screenshot is read inside your browser and is never uploaded or saved.
+
+    // Turns the text read from a screenshot into { name, price, site }. Nothing is saved here;
+    // the results only fill in the form so you can check them first.
+    function parseListing(text) {
+      const lines = String(text).split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+      const moneyPattern = /\$\s*(\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)/;
+      // Lines that show what the BUYER pays (price plus protection fee) are skipped.
+      const buyerPattern = /incl|buyer|subtotal|protection|shipping|postage/i;
+
+      let price = null;
+      let priceIndex = -1;
+      for (let i = 0; i < lines.length; i++) {
+        if (buyerPattern.test(lines[i])) continue;
+        const m = lines[i].match(moneyPattern);
+        if (m) {
+          price = Number(m[1].replace(/,/g, ""));
+          priceIndex = i;
+          break;
+        }
+      }
+      // Sometimes the $ sign is misread as an S, on a line that is just the price.
+      if (price === null) {
+        for (let i = 0; i < lines.length; i++) {
+          if (buyerPattern.test(lines[i])) continue;
+          const m = lines[i].match(/^[S§]\s?(\d+(?:[.,]\d{1,2})?)$/);
+          if (m) {
+            price = Number(m[1].replace(",", "."));
+            priceIndex = i;
+            break;
+          }
+        }
+      }
+
+      // The title is the closest readable line above the price.
+      let name = "";
+      for (let i = priceIndex - 1; i >= 0; i--) {
+        if (/[A-Za-z]{3,}/.test(lines[i])) {
+          name = lines[i].replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9)!?.]+$/g, "");
+          break;
+        }
+      }
+
+      let site = "";
+      if (/depop/i.test(text)) site = "Depop";
+      else if (/vinted|buyer protection|subtotal for buyer/i.test(text)) site = "Vinted";
+
+      return { name: name, price: price, site: site };
+    }
+
+    let ocrLoading = null;
+    function loadOcr() {
+      if (window.Tesseract) return Promise.resolve(window.Tesseract);
+      if (!ocrLoading) {
+        ocrLoading = new Promise(function (resolve, reject) {
+          const script = document.createElement("script");
+          script.src = OCR_SCRIPT;
+          script.onload = function () { resolve(window.Tesseract); };
+          script.onerror = function () {
+            ocrLoading = null;
+            reject(new Error("The screenshot reader could not be loaded."));
+          };
+          document.head.appendChild(script);
+        });
+      }
+      return ocrLoading;
+    }
+
+    function showImportNote(text, isWarning) {
+      importNote.textContent = text;
+      importNote.className = isWarning ? "warn" : "";
+      importNote.style.display = "block";
+    }
+
+    function hideImportNote() {
+      importNote.style.display = "none";
+      importNote.textContent = "";
+      importRaw.style.display = "none";
+      importRaw.open = false;
+    }
+
+    importButton.addEventListener("click", function () {
+      importFile.click();
+    });
+
+    importFile.addEventListener("change", function () {
+      const file = importFile.files && importFile.files[0];
+      if (!file) return;
+
+      importButton.disabled = true;
+      importRaw.style.display = "none";
+      showImportNote("Loading the screenshot reader...", false);
+
+      loadOcr()
+        .then(function (Tesseract) {
+          showImportNote("Reading the screenshot...", false);
+          return Tesseract.recognize(file, "eng", {
+            logger: function (m) {
+              if (m.status === "recognizing text") {
+                showImportNote("Reading the screenshot... " + Math.round(m.progress * 100) + "%", false);
+              }
+            }
+          });
+        })
+        .then(function (result) {
+          fillFormFromListing(result.data.text);
+        })
+        .catch(function (err) {
+          showImportNote("Sorry, the import didn't work (" + err.message + "). Check your internet connection and try again, or add the item by hand.", true);
+        })
+        .then(function () {
+          importButton.disabled = false;
+          importFile.value = "";
+        });
+    });
+
+    function fillFormFromListing(text) {
+      const found = parseListing(text);
+
+      closeForm();
+      document.getElementById("name").value = found.name;
+      if (found.site) siteInput.value = found.site;
+      statusInput.value = "Listed";
+      postedInput.value = todayText();
+      if (found.price !== null) {
+        originalInput.value = found.price;
+        currentInput.value = found.price;
+      }
+      updateSoldForUI();
+      updateBumpUI(true);
+      showForm();
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      const missing = [];
+      if (!found.name) missing.push("the item name");
+      if (found.price === null) missing.push("the price");
+
+      let message;
+      if (missing.length === 2) {
+        message = "I couldn't read the name or the price. Try a clearer screenshot, or fill them in below.";
+      } else if (missing.length === 1) {
+        message = "I couldn't read " + missing[0] + ". Please fill it in below, then check the rest.";
+      } else {
+        message = "Read from your screenshot. Please check the name and price, and change the date posted if it wasn't today, then press Add item.";
+      }
+
+      const lowerName = found.name.toLowerCase();
+      const duplicate = lowerName !== "" && items.some(function (item) {
+        return item.name.toLowerCase() === lowerName && item.site === siteInput.value;
+      });
+      if (duplicate) message += " Heads up: you already have an item with this name on " + siteInput.value + ".";
+      if (!found.site) message += " I couldn't tell which site this is from, so check the Site box.";
+
+      showImportNote(message, missing.length > 0 || duplicate);
+      importRawText.textContent = text.trim() || "(nothing was read)";
+      importRaw.style.display = "block";
+    }
+
+    // ---- starting balances (typed by you) ----
+    PLATFORM_NAMES.forEach(function (name) {
+      const input = document.getElementById("start-" + name);
+      input.value = balances[name] ? balances[name] : "";
+      input.addEventListener("input", function () {
+        balances[name] = Number(input.value) || 0;
+        save();
+        render();
+      });
+    });
+
+    // ---- the two dropdowns in the top box ----
+    // Clicking outside one closes it (so only one stays open), and Escape closes both.
+    // composedPath() is used because buttons inside a panel get rebuilt when the page redraws.
+    const dropdowns = [balancesBox, goalsBox];
+    document.addEventListener("click", function (event) {
+      const path = event.composedPath();
+      dropdowns.forEach(function (box) {
+        if (box.open && path.indexOf(box) === -1) box.open = false;
+      });
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        dropdowns.forEach(function (box) { box.open = false; });
+      }
+    });
+
+    // ---- filters and reminder setting ----
+    filterInput.value = filter;
+    filterInput.addEventListener("change", function () {
+      filter = filterInput.value;
+      save();
+      render();
+    });
+
+    statusFilterInput.value = statusFilter;
+    statusFilterInput.addEventListener("change", function () {
+      statusFilter = statusFilterInput.value;
+      save();
+      render();
+    });
+
+    remindInput.value = remindDays;
+    remindInput.addEventListener("input", function () {
+      const n = Number(remindInput.value);
+      if (n >= 1) {
+        remindDays = n;
+        save();
+        render();
+      }
+    });
+
+    function lowerPrice(item) {
+      const text = prompt("New price for " + item.name + " (now " + money(item.current) + "):");
+      if (text === null || text.trim() === "") return;
+      const value = Number(text);
+      if (isNaN(value) || value < 0) {
+        alert("Please enter a number, like 18 or 18.50.");
+        return;
+      }
+      if (value === item.current) return;
+      item.current = value;
+      item.priceChanged = todayText();
+      save();
+      render();
+    }
+
+    // ---- goals ----
+    addGoalButton.addEventListener("click", function () {
+      if (goalForm.style.display === "block") {
+        goalForm.style.display = "none";
+        goalForm.reset();
+        addGoalButton.textContent = "+ Add goal";
+      } else {
+        goalForm.style.display = "block";
+        addGoalButton.textContent = "Close form";
+        document.getElementById("goal-name").focus();
+      }
+    });
+
+    // The overall bar adds up every goal still in progress.
+    function renderOverall(balance, activeTotal, activeCount) {
+      const mini = document.getElementById("goals-mini");
+      const overall = document.getElementById("overall-box");
+
+      if (activeCount === 0) {
+        mini.style.display = "none";
+        overall.style.display = "none";
+        return;
+      }
+
+      const have = Math.max(0, Math.min(balance, activeTotal));
+      const goalWord = activeCount === 1 ? "goal" : "goals";
+
+      mini.style.display = "block";
+      document.getElementById("mini-bar").max = activeTotal;
+      document.getElementById("mini-bar").value = have;
+      document.getElementById("mini-text").textContent =
+        money(have) + " of " + money(activeTotal) + " (" + activeCount + " " + goalWord + ")";
+
+      overall.style.display = "block";
+      document.getElementById("overall-bar").max = activeTotal;
+      document.getElementById("overall-bar").value = have;
+      document.getElementById("overall-text").textContent =
+        "All goals together: " + money(have) + " of " + money(activeTotal) + " (" + activeCount + " " + goalWord + ")";
+    }
+
+    function renderGoals(balance) {
+      const activeList = document.getElementById("goal-list");
+      const doneList = document.getElementById("purchased-list");
+      activeList.innerHTML = "";
+      doneList.innerHTML = "";
+      let activeCount = 0;
+      let doneCount = 0;
+      let activeTotal = 0;
+
+      goals.forEach(function (goal, index) {
+        const box = document.createElement("div");
+        box.className = "goal";
+
+        const title = document.createElement("div");
+        if (goal.purchased) {
+          title.className = "done";
+          title.textContent = goal.name + " - $" + goal.amount.toFixed(2) + " (purchased)";
+        } else {
+          const have = Math.max(0, Math.min(balance, goal.amount));
+          title.textContent = goal.name + " - $" + have.toFixed(2) + " of $" + goal.amount.toFixed(2);
+        }
+        box.appendChild(title);
+
+        if (!goal.purchased) {
+          const bar = document.createElement("progress");
+          bar.max = goal.amount;
+          bar.value = Math.max(0, Math.min(balance, goal.amount));
+          box.appendChild(bar);
+        }
+
+        const toggle = document.createElement("button");
+        toggle.textContent = goal.purchased ? "Undo" : "Mark purchased";
+        toggle.onclick = function () {
+          if (!goal.purchased && goal.amount > balance) {
+            if (!confirm("You don't have enough balance yet. Mark it purchased anyway?")) return;
+          }
+          goal.purchased = !goal.purchased;
+          save();
+          render();
+        };
+        box.appendChild(toggle);
+
+        const remove = document.createElement("button");
+        remove.textContent = "Delete";
+        remove.onclick = function () {
+          if (confirm("Delete goal " + goal.name + "?")) {
+            goals.splice(index, 1);
+            save();
+            render();
+          }
+        };
+        box.appendChild(remove);
+
+        if (goal.purchased) {
+          doneList.appendChild(box);
+          doneCount++;
+        } else {
+          activeList.appendChild(box);
+          activeCount++;
+          activeTotal += goal.amount;
+        }
+      });
+
+      document.getElementById("no-goals").style.display = activeCount === 0 ? "block" : "none";
+      document.getElementById("purchased-goals").style.display = doneCount === 0 ? "none" : "block";
+      document.getElementById("purchased-summary").textContent = "Purchased goals (" + doneCount + ")";
+      renderOverall(balance, activeTotal, activeCount);
+    }
+
+    function render() {
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+      let itemTotal = 0;
+      let shown = 0;
+      const dueNames = [];
+      const itemByPlatform = {};
+      PLATFORM_NAMES.forEach(function (name) { itemByPlatform[name] = 0; });
+
+      items.forEach(function (item, index) {
+        // Totals and reminders always count every item, whatever the filters say.
+        const profit = item.status === "Sold" ? profitOf(item) : null;
+        if (profit !== null) {
+          itemTotal += profit;
+          if (itemByPlatform[item.site] !== undefined) itemByPlatform[item.site] += profit;
+        }
+        if (isDue(item)) dueNames.push(item.name);
+
+        if (filter !== "All" && item.site !== filter) return;
+        if (statusFilter !== "All" && item.status !== statusFilter) return;
+        shown++;
+
+        const row = document.createElement("tr");
+        row.className = STATUS_CLASS[item.status] || "";
+
+        // Photos
+        const photoCell = document.createElement("td");
+        const count = photoCount(item);
+        if (count === PHOTO_TYPES.length) {
+          photoCell.textContent = "✓";
+          photoCell.className = "photo-ok";
+          photoCell.title = "All photos taken";
+        } else {
+          photoCell.textContent = count + "/" + PHOTO_TYPES.length;
+          photoCell.className = "photo-partial";
+          photoCell.title = "Photos taken";
+        }
+        row.appendChild(photoCell);
+
+        // Item, site, status
+        [item.name, item.site, item.status].forEach(function (text) {
+          const td = document.createElement("td");
+          td.textContent = text;
+          row.appendChild(td);
+        });
+
+        // Price
+        const priceCell = document.createElement("td");
+        const priceMain = document.createElement("div");
+        if (item.status === "Sold") {
+          priceMain.textContent = "Sold " + money(salePrice(item));
+          priceCell.appendChild(priceMain);
+          if (item.original !== salePrice(item)) {
+            const note = document.createElement("div");
+            note.className = "small";
+            note.textContent = "listed at " + money(item.original);
+            priceCell.appendChild(note);
+          }
+        } else {
+          priceMain.textContent = item.original !== item.current
+            ? money(item.original) + " → " + money(item.current)
+            : money(item.current);
+          priceCell.appendChild(priceMain);
+          const d = daysAtPrice(item);
+          if (d !== null) {
+            const note = document.createElement("div");
+            if (isDue(item)) {
+              note.className = "due";
+              note.textContent = "⏰ Reduce price (" + d + (d === 1 ? " day" : " days") + ")";
+            } else {
+              note.className = "small";
+              note.textContent = d + (d === 1 ? " day" : " days") + " at this price";
+            }
+            priceCell.appendChild(note);
+          }
+        }
+        row.appendChild(priceCell);
+
+        // Profit
+        const profitCell = document.createElement("td");
+        profitCell.textContent = profit === null ? "-" : money(profit);
+        row.appendChild(profitCell);
+
+        // Buttons
+        const actionCell = document.createElement("td");
+
+        const editButton = document.createElement("button");
+        editButton.textContent = "Edit";
+        editButton.onclick = function () {
+          startEdit(index);
+        };
+        actionCell.appendChild(editButton);
+
+        if (item.status === "Listed") {
+          const lowerButton = document.createElement("button");
+          lowerButton.textContent = "Lower price";
+          lowerButton.onclick = function () {
+            lowerPrice(item);
+          };
+          actionCell.appendChild(lowerButton);
+        }
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.onclick = function () {
+          if (confirm("Delete " + item.name + "?")) {
+            items.splice(index, 1);
+            closeForm();
+            save();
+            render();
+          }
+        };
+        actionCell.appendChild(deleteButton);
+
+        row.appendChild(actionCell);
+        list.appendChild(row);
+      });
+
+      const parts = [];
+      if (filter !== "All") parts.push(filter);
+      if (statusFilter !== "All") parts.push(statusFilter);
+      document.getElementById("list-count").textContent =
+        "Showing " + shown + " of " + items.length + " items" + (parts.length ? " (" + parts.join(", ") + ")" : "");
+
+      const banner = document.getElementById("reduce-banner");
+      if (dueNames.length > 0) {
+        banner.style.display = "block";
+        banner.textContent = "⏰ Time to lower the price on: " + dueNames.join(", ");
+      } else {
+        banner.style.display = "none";
+        banner.textContent = "";
+      }
+
+      let startTotal = 0;
+      PLATFORM_NAMES.forEach(function (name) {
+        const start = balances[name] || 0;
+        startTotal += start;
+        document.getElementById("item-" + name).textContent = money(itemByPlatform[name]);
+        document.getElementById("sum-" + name).textContent = money(start + itemByPlatform[name]);
+      });
+
+      const total = itemTotal + startTotal;
+      document.getElementById("start-all").textContent = money(startTotal);
+      document.getElementById("item-all").textContent = money(itemTotal);
+      document.getElementById("sum-all").textContent = money(total);
+
+      let spent = 0;
+      goals.forEach(function (goal) {
+        if (goal.purchased) spent += goal.amount;
+      });
+      const balance = total - spent;
+
+      document.getElementById("total").textContent = total.toFixed(2);
+      document.getElementById("balance").textContent = balance.toFixed(2);
+      renderGoals(balance);
+    }
+
+    form.addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      if (postedInput.value && soldInput.value && dayDiff(postedInput.value, soldInput.value) < 0) {
+        alert("The sold date can't be earlier than the posted date.");
+        return;
+      }
+
+      const photos = {};
+      PHOTO_TYPES.forEach(function (type) {
+        photos[type.key] = document.getElementById("photo-" + type.key).checked;
+      });
+
+      const original = Number(originalInput.value) || 0;
+      const current = currentInput.value === "" ? original : Number(currentInput.value);
+      const status = statusInput.value;
+      const soldFor = status === "Sold" && soldForInput.value !== "" ? Number(soldForInput.value) : null;
+
+      let priceChanged = "";
+      if (editingIndex !== null) {
+        const old = items[editingIndex];
+        priceChanged = current !== old.current ? todayText() : old.priceChanged;
+      }
+
+      const item = {
+        name: document.getElementById("name").value,
+        site: siteInput.value,
+        status: status,
+        photos: photos,
+        posted: postedInput.value,
+        sold: soldInput.value,
+        original: original,
+        current: current,
+        soldFor: soldFor,
+        priceChanged: priceChanged,
+        bump: bumpInput.checked,
+        bumpPercent: Number(bumpPercentInput.value) || 0
+      };
+      if (editingIndex === null) {
+        items.push(item);
+      } else {
+        items[editingIndex] = item;
+      }
+      hideImportNote();
+      closeForm();
+      save();
+      render();
+    });
+
+    goalForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      goals.push({
+        name: document.getElementById("goal-name").value,
+        amount: Number(document.getElementById("goal-amount").value),
+        purchased: false
+      });
+      save();
+      render();
+      goalForm.reset();
+      goalForm.style.display = "none";
+      addGoalButton.textContent = "+ Add goal";
+    });
+
+    function csvCell(value) {
+      let text = String(value);
+      if (/^[=+\-@]/.test(text)) text = "'" + text;
+      return '"' + text.replace(/"/g, '""') + '"';
+    }
+
+    document.getElementById("export-button").addEventListener("click", function () {
+      const header = ["Item", "Site", "Status"];
+      PHOTO_TYPES.forEach(function (type) { header.push("Photo: " + type.label); });
+      header.push("Date posted", "Date sold", "Days to sell", "Original price", "Current price", "Last price change", "Sold for", "Bumped", "Bump %", "Bump cost", "Profit");
+      const rows = [header];
+
+      items.forEach(function (item) {
+        const d = daysToSell(item);
+        const row = [item.name, item.site, item.status];
+        PHOTO_TYPES.forEach(function (type) {
+          row.push(item.photos && item.photos[type.key] ? "Yes" : "No");
+        });
+        row.push(
+          item.posted || "", item.sold || "", d === null ? "" : d,
+          item.original.toFixed(2), item.current.toFixed(2),
+          item.priceChanged || "",
+          item.status === "Sold" ? salePrice(item).toFixed(2) : "",
+          item.bump ? "Yes" : "No", item.bump ? (item.bumpPercent || 0) : "",
+          feeTotal(item).toFixed(2),
+          item.status === "Sold" ? profitOf(item).toFixed(2) : ""
+        );
+        rows.push(row);
+      });
+
+      const csv = rows.map(function (r) { return r.map(csvCell).join(","); }).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "resale-items.csv";
+      link.click();
+    });
+
+    closeForm();
+    render();
+  </script>
 </body>
 </html>
