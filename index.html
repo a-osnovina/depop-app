@@ -5,105 +5,163 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Resale Tracker</title>
   <style>
-    body { font-family: sans-serif; max-width: 760px; margin: 0 auto; padding: 0 16px 24px; }
-    label { display: block; margin: 6px 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { border-bottom: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; }
-    #balance-table input { width: 110px; }
-    #item-form, #goal-form { display: none; border: 1px solid #ccc; border-radius: 8px; padding: 6px 14px 12px; margin: 10px 0; }
-    #item-form { scroll-margin-top: 130px; }
-    #bump-percent-row { display: none; margin-left: 24px; }
-    #sold-for-row { display: none; }
-    #bump-note { margin-left: 24px; color: #444; }
-    fieldset { margin: 10px 0; }
-    fieldset label { display: inline-block; margin-right: 12px; }
-    .photo-ok { color: #1a7f37; font-weight: bold; }
-    .photo-partial { color: #666; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; color: #222; max-width: 760px; margin: 0 auto; padding: 0 12px calc(32px + env(safe-area-inset-bottom)); background: #ffffff; }
+    h1 { font-size: 22px; margin: 0; }
+    h2 { font-size: 18px; margin: 18px 0 8px; }
     .small { font-size: 12px; color: #555; }
-    .due { font-size: 12px; color: #b42318; font-weight: bold; }
-    #reduce-banner { display: none; background: #fdecea; color: #b42318; border-radius: 6px; padding: 8px 12px; margin-top: 10px; }
-    .section-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 22px; }
-    .section-head h2 { margin: 0; }
-    #import-note { display: none; background: #e8f3ff; color: #0b3d75; border-radius: 6px; padding: 8px 12px; margin-top: 10px; }
-    #import-note.warn { background: #fff4d6; color: #6b4a00; }
-    #import-raw { display: none; margin-top: 6px; font-size: 12px; color: #555; }
-    #import-raw pre { white-space: pre-wrap; background: #f6f6f6; padding: 8px; border-radius: 6px; margin: 6px 0 0; }
-    .thumb { display: block; width: 56px; height: 56px; object-fit: cover; object-position: top; border-radius: 6px; background: #ddd; }
-    #pic-preview { display: none; width: 90px; height: 90px; object-fit: cover; object-position: top; border-radius: 8px; margin: 6px 0; }
-    .list-tools { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
-    .list-tools label { margin: 0; }
-    #remind-days { width: 60px; }
-    .count-right { text-align: right; margin-top: 6px; }
-    .row-progress { background: #fff4d6; }
-    .row-listed { background: #e0efff; }
-    .row-sold { background: #dff3e3; }
-    .goal { border-bottom: 1px solid #ccc; padding: 8px 0; }
-    .goal progress { width: 100%; height: 16px; }
-    .done { color: #666; text-decoration: line-through; }
-    details summary { cursor: pointer; }
-    #purchased-goals { display: none; margin-top: 10px; }
-    #purchased-goals > summary { color: #444; }
-    #no-goals { color: #666; margin-top: 8px; }
-    #overall-box { display: none; padding-bottom: 10px; border-bottom: 2px solid #ccc; margin-bottom: 4px; }
-    #overall-box progress { width: 100%; height: 18px; }
-    .panel-row { margin: 10px 0 4px; }
 
-    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .summary { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 24px; background: #eeeeee; border-radius: 0 0 8px 8px; padding: 10px 18px; margin: 0 0 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
+    /* Buttons: big enough for a thumb */
+    button { font: inherit; font-size: 16px; min-height: 44px; padding: 0 16px; border: 1px solid #b8b8b8; border-radius: 10px; background: #ffffff; color: #222; cursor: pointer; touch-action: manipulation; }
+    button:disabled { opacity: 0.5; }
+    button.primary { background: #0b5cad; border-color: #0b5cad; color: #ffffff; font-weight: 600; }
+    button.danger { color: #b42318; }
+    button.small-btn { min-height: 40px; padding: 0 12px; font-size: 14px; }
+
+    /* Boxes: 16px text stops iPhones from zooming in when you tap one */
+    input, select { font: inherit; font-size: 16px; min-height: 44px; padding: 8px 10px; border: 1px solid #b8b8b8; border-radius: 8px; background: #ffffff; color: #222; touch-action: manipulation; }
+    .field { display: block; margin: 14px 0 0; font-size: 14px; font-weight: 600; }
+    .field input, .field select { display: block; width: 100%; margin-top: 4px; font-weight: 400; }
+    .check { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 4px 0 0; font-size: 16px; font-weight: 400; }
+    .check input { width: 24px; height: 24px; min-height: 0; flex: none; }
+    input[type="date"] { min-height: 44px; }
+
+    /* Top box that stays on screen */
+    .summary { position: sticky; top: 0; z-index: 10; background: #eeeeee; border-radius: 0 0 12px 12px; padding: 10px 12px 12px; margin: 0 0 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
+    .stats { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
     .stat { display: flex; flex-direction: column; }
-    .stat-label { font-size: 14px; color: #444; }
+    .stat-label { font-size: 13px; color: #444; }
     .stat-value { font-size: 20px; font-weight: bold; }
-    .main .stat-value { font-size: 38px; }
+    .main .stat-value { font-size: 32px; line-height: 1.1; }
     .profit { color: #1a7f37; }
     .balance { color: #0b5cad; }
+    .tabs { display: flex; gap: 8px; margin-top: 10px; }
+    .tabs details { flex: 1; }
+    .tabs summary { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; background: #ffffff; border: 1px solid #c4c4c4; border-radius: 10px; color: #0b5cad; font-size: 14px; font-weight: 700; text-align: center; white-space: nowrap; cursor: pointer; list-style: none; touch-action: manipulation; }
+    .tabs summary::-webkit-details-marker { display: none; }
+    .tabs summary::after { content: "\25BE"; font-size: 12px; }
+    .tabs details[open] > summary::after { content: "\25B4"; }
+    #goals-mini { display: none; margin-top: 8px; }
+    #goals-mini progress { width: 100%; height: 8px; display: block; }
+    #mini-text { margin-top: 2px; }
+    .dropdown-panel { position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid #ccc; border-radius: 0 0 12px 12px; padding: 4px 14px 14px; max-height: 65vh; overflow: auto; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
 
-    .side { margin-left: auto; align-self: center; display: flex; flex-direction: column; gap: 6px; }
-    .side > details > summary { color: #0b5cad; font-size: 14px; font-weight: bold; }
-    #goals-mini { display: none; }
-    #goals-mini progress { width: 170px; height: 10px; display: block; }
-    .dropdown-panel { position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid #ccc; border-radius: 0 0 8px 8px; padding: 6px 14px 12px; max-height: 60vh; overflow: auto; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
+    /* Platform balances */
+    .bal-block { border-bottom: 1px solid #ddd; padding: 8px 0 12px; }
+    .bal-block:last-child { border-bottom: 0; }
+    .bal-name { font-weight: 700; font-size: 17px; margin-top: 6px; }
+    .bal-line { display: flex; justify-content: space-between; margin-top: 8px; }
+    .bal-line.total { font-weight: 700; }
+
+    /* Goals */
+    #overall-box { display: none; padding: 10px 0; border-bottom: 2px solid #ccc; margin-bottom: 4px; }
+    #overall-box progress { width: 100%; height: 16px; }
+    .panel-row { margin: 10px 0 4px; }
+    #goal-form { display: none; border: 1px solid #ccc; border-radius: 10px; padding: 2px 12px 14px; margin: 10px 0; }
+    .goal { border-bottom: 1px solid #ddd; padding: 12px 0; }
+    .goal progress { width: 100%; height: 16px; margin: 6px 0; }
+    .goal-buttons { display: flex; gap: 8px; margin-top: 6px; }
+    .goal-buttons button { flex: 1; }
+    .done { color: #666; text-decoration: line-through; }
+    details summary { cursor: pointer; }
+    #purchased-goals { display: none; margin-top: 12px; }
+    #purchased-goals > summary { color: #444; min-height: 44px; display: flex; align-items: center; }
+    #no-goals { color: #666; margin-top: 10px; }
+
+    /* Header and buttons above the list */
+    .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 4px; }
+    .toolbar { display: flex; gap: 8px; margin: 4px 0 0; }
+    .toolbar button { flex: 1; }
+    #import-note { display: none; background: #e8f3ff; color: #0b3d75; border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
+    #import-note.warn { background: #fff4d6; color: #6b4a00; }
+    #import-raw { display: none; margin-top: 6px; font-size: 13px; color: #555; }
+    #import-raw summary { min-height: 40px; display: flex; align-items: center; }
+    #import-raw pre { white-space: pre-wrap; background: #f6f6f6; padding: 8px; border-radius: 8px; margin: 6px 0 0; }
+
+    /* Add / edit form */
+    #item-form { display: none; border: 1px solid #ccc; border-radius: 12px; padding: 2px 14px 16px; margin: 12px 0; scroll-margin-top: 170px; }
+    #bump-percent-row { display: none; margin-left: 12px; }
+    #sold-for-row { display: none; }
+    #bump-note { margin-left: 12px; color: #444; }
+    fieldset { margin: 16px 0 0; border: 1px solid #ddd; border-radius: 10px; padding: 4px 12px 10px; }
+    legend { font-size: 14px; font-weight: 600; padding: 0 6px; }
+    #photo-boxes { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; }
+    #pic-preview { display: none; width: 96px; height: 96px; object-fit: cover; object-position: top; border-radius: 10px; margin: 8px 0; }
+    .pic-buttons { display: flex; gap: 8px; margin-top: 6px; }
+    .pic-buttons button { flex: 1; }
+    .form-actions { display: flex; gap: 8px; margin-top: 18px; }
+    .form-actions button { flex: 1; }
+    .form-actions #submit-button { flex: 2; }
+
+    /* Filters */
+    .list-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+    .list-tools .field { margin: 0; }
+    .remind-row { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+    #remind-days { width: 72px; text-align: center; }
+    #reduce-banner { display: none; background: #fdecea; color: #b42318; border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-weight: 600; }
+    .count-right { text-align: right; margin-top: 6px; }
+
+    /* Item cards */
+    .card { border-radius: 12px; padding: 12px; margin: 10px 0; border-left: 6px solid #999; }
+    .row-progress { background: #fff4d6; border-left-color: #e0a800; }
+    .row-listed { background: #e0efff; border-left-color: #3b82c4; }
+    .row-sold { background: #dff3e3; border-left-color: #2e9b4f; }
+    .card-top { display: flex; gap: 12px; }
+    .thumb { flex: none; display: block; width: 84px; height: 84px; object-fit: cover; object-position: top; border-radius: 10px; background: #d9d9d9; }
+    .thumb.empty { display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666; background: rgba(0, 0, 0, 0.08); }
+    .card-main { flex: 1; min-width: 0; }
+    .card-title { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
+    .card-meta { font-size: 13px; color: #444; margin-top: 2px; }
+    .card-price { font-size: 16px; margin-top: 6px; }
+    .card-profit { font-weight: 700; color: #1a7f37; margin-top: 2px; }
+    .badge { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.08); color: #555; margin-left: 4px; }
+    .badge.ok { background: #1a7f37; color: #ffffff; font-weight: 700; }
+    .due { font-size: 13px; color: #b42318; font-weight: bold; }
+    .card-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .card-actions button { flex: 1; padding: 0 4px; font-size: 15px; white-space: nowrap; }
   </style>
 </head>
 <body>
   <div class="summary">
-    <div class="stat main">
-      <span class="stat-label">Available balance</span>
-      <span class="stat-value balance">$<span id="balance">0.00</span></span>
-    </div>
-    <div class="stat">
-      <span class="stat-label">Total profit</span>
-      <span class="stat-value profit">$<span id="total">0.00</span></span>
+    <div class="stats">
+      <div class="stat main">
+        <span class="stat-label">Available balance</span>
+        <span class="stat-value balance">$<span id="balance">0.00</span></span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Total profit</span>
+        <span class="stat-value profit">$<span id="total">0.00</span></span>
+      </div>
     </div>
 
-    <div class="side">
+    <div class="tabs">
       <details id="balances">
         <summary>Platform balances</summary>
         <div class="dropdown-panel">
-          <table id="balance-table">
-            <thead>
-              <tr><th>Platform</th><th>Starting balance ($)</th><th>Item profit</th><th>Total</th></tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Depop</td>
-                <td><input id="start-Depop" type="number" step="0.01" min="0" placeholder="0.00"></td>
-                <td id="item-Depop">$0.00</td>
-                <td id="sum-Depop">$0.00</td>
-              </tr>
-              <tr>
-                <td>Vinted</td>
-                <td><input id="start-Vinted" type="number" step="0.01" min="0" placeholder="0.00"></td>
-                <td id="item-Vinted">$0.00</td>
-                <td id="sum-Vinted">$0.00</td>
-              </tr>
-              <tr>
-                <td><strong>Combined</strong></td>
-                <td id="start-all">$0.00</td>
-                <td id="item-all">$0.00</td>
-                <td id="sum-all"><strong>$0.00</strong></td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="bal-block">
+            <div class="bal-name">Depop</div>
+            <label class="field">Starting balance ($)
+              <input id="start-Depop" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
+            </label>
+            <div class="bal-line"><span>Item profit</span><span id="item-Depop">$0.00</span></div>
+            <div class="bal-line total"><span>Total</span><span id="sum-Depop">$0.00</span></div>
+          </div>
+          <div class="bal-block">
+            <div class="bal-name">Vinted</div>
+            <label class="field">Starting balance ($)
+              <input id="start-Vinted" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
+            </label>
+            <div class="bal-line"><span>Item profit</span><span id="item-Vinted">$0.00</span></div>
+            <div class="bal-line total"><span>Total</span><span id="sum-Vinted">$0.00</span></div>
+          </div>
+          <div class="bal-block">
+            <div class="bal-name">Combined</div>
+            <div class="bal-line"><span>Starting balances</span><span id="start-all">$0.00</span></div>
+            <div class="bal-line"><span>Item profit</span><span id="item-all">$0.00</span></div>
+            <div class="bal-line total"><span>Total</span><span id="sum-all">$0.00</span></div>
+          </div>
         </div>
       </details>
 
@@ -120,9 +178,9 @@
           </div>
 
           <form id="goal-form">
-            <label>Goal name <input id="goal-name" required></label>
-            <label>Amount ($) <input id="goal-amount" type="number" step="0.01" min="0.01" required></label>
-            <button type="submit">Save goal</button>
+            <label class="field">Goal name <input id="goal-name" required></label>
+            <label class="field">Amount ($) <input id="goal-amount" type="number" inputmode="decimal" step="0.01" min="0.01" required></label>
+            <div class="form-actions"><button type="submit" class="primary">Save goal</button></div>
           </form>
 
           <div id="goal-list"></div>
@@ -134,23 +192,23 @@
           </details>
         </div>
       </details>
+    </div>
 
-      <div id="goals-mini">
-        <progress id="mini-bar" value="0" max="1"></progress>
-        <div id="mini-text" class="small"></div>
-      </div>
+    <div id="goals-mini">
+      <progress id="mini-bar" value="0" max="1"></progress>
+      <div id="mini-text" class="small"></div>
     </div>
   </div>
 
   <div class="top">
     <h1>Resale Tracker</h1>
-    <button type="button" id="export-button">Export CSV</button>
+    <button type="button" id="export-button" class="small-btn">Export CSV</button>
   </div>
 
   <!-- ITEM LIST -->
-  <div class="section-head">
-    <h2>Item list</h2>
-    <button type="button" id="add-item-button">+ Add item</button>
+  <h2>Item list</h2>
+  <div class="toolbar">
+    <button type="button" id="add-item-button" class="primary">+ Add item</button>
     <button type="button" id="import-button">Import from screenshot</button>
     <input type="file" id="import-file" accept="image/*" hidden>
   </div>
@@ -161,14 +219,14 @@
   </details>
 
   <form id="item-form">
-    <label>Item name <input id="name" required></label>
-    <label>Site
+    <label class="field">Item name <input id="name" required></label>
+    <label class="field">Site
       <select id="site">
         <option>Depop</option>
         <option>Vinted</option>
       </select>
     </label>
-    <label>Status
+    <label class="field">Status
       <select id="status">
         <option>In progress</option>
         <option>Listed</option>
@@ -176,14 +234,14 @@
       </select>
     </label>
 
-    <div>
-      <div class="small">Picture shown in your list</div>
-      <img id="pic-preview" alt="Item picture">
-      <div>
+    <div class="field">
+      Picture shown in your list
+      <div><img id="pic-preview" alt="Item picture"></div>
+      <div class="pic-buttons">
         <button type="button" id="pic-choose">Choose picture</button>
         <button type="button" id="pic-remove">Remove picture</button>
-        <input type="file" id="pic-file" accept="image/*" hidden>
       </div>
+      <input type="file" id="pic-file" accept="image/*" hidden>
     </div>
 
     <fieldset>
@@ -191,31 +249,33 @@
       <div id="photo-boxes"></div>
     </fieldset>
 
-    <label>Date posted <input id="posted" type="date"></label>
-    <label>Date sold <input id="sold" type="date"></label>
-    <label>Days to sell <input id="days" type="number" min="0" step="1"></label>
+    <label class="field">Date posted <input id="posted" type="date"></label>
+    <label class="field">Date sold <input id="sold" type="date"></label>
+    <label class="field">Days to sell <input id="days" type="number" inputmode="numeric" min="0" step="1"></label>
 
-    <label>Original listed price ($) <input id="original" type="number" step="0.01" min="0" value="0"></label>
-    <label>Current price ($) <input id="current" type="number" step="0.01" min="0" placeholder="same as original"></label>
-    <label id="sold-for-row">Sold for ($) <input id="sold-for" type="number" step="0.01" min="0" placeholder="same as current price"></label>
+    <label class="field">Original listed price ($) <input id="original" type="number" inputmode="decimal" step="0.01" min="0" value="0"></label>
+    <label class="field">Current price ($) <input id="current" type="number" inputmode="decimal" step="0.01" min="0" placeholder="same as original"></label>
+    <label class="field" id="sold-for-row">Sold for ($) <input id="sold-for" type="number" inputmode="decimal" step="0.01" min="0" placeholder="same as current price"></label>
 
-    <label><input type="checkbox" id="bump"> <span id="bump-label"></span></label>
-    <label id="bump-percent-row">Bump cost (% of sale price) <input id="bump-percent" type="number" step="0.1" min="0" value="12"></label>
+    <label class="check" style="margin-top:14px"><input type="checkbox" id="bump"> <span id="bump-label"></span></label>
+    <label class="field" id="bump-percent-row">Bump cost (% of sale price) <input id="bump-percent" type="number" inputmode="decimal" step="0.1" min="0" value="12"></label>
     <div id="bump-note"></div>
 
-    <button type="submit" id="submit-button">Add item</button>
-    <button type="button" id="cancel-edit">Cancel</button>
+    <div class="form-actions">
+      <button type="submit" id="submit-button" class="primary">Add item</button>
+      <button type="button" id="cancel-edit">Cancel</button>
+    </div>
   </form>
 
-  <div class="list-tools">
-    <label>Platform
+  <div class="list-tools" style="margin-top:14px">
+    <label class="field">Platform
       <select id="filter">
         <option>All</option>
         <option>Depop</option>
         <option>Vinted</option>
       </select>
     </label>
-    <label>Status
+    <label class="field">Status
       <select id="status-filter">
         <option>All</option>
         <option>In progress</option>
@@ -223,17 +283,12 @@
         <option>Sold</option>
       </select>
     </label>
-    <label>Remind me to lower prices after
-      <input id="remind-days" type="number" min="1" step="1" value="7"> days
+    <label class="remind-row">Remind me to lower prices after
+      <input id="remind-days" type="number" inputmode="numeric" min="1" step="1" value="7"> days
     </label>
   </div>
   <div id="reduce-banner"></div>
-  <table>
-    <thead>
-      <tr><th></th><th>Photos</th><th>Item</th><th>Site</th><th>Status</th><th>Price</th><th>Profit</th><th></th></tr>
-    </thead>
-    <tbody id="list"></tbody>
-  </table>
+  <div id="list"></div>
   <div id="list-count" class="small count-right"></div>
 
   <script>
@@ -269,7 +324,7 @@
     let formPhoto = "";
 
     try {
-      items =JSON.parse(localStorage.getItem("items")) || [];
+      items = JSON.parse(localStorage.getItem("items")) || [];
     } catch (e) {
       items = [];
     }
@@ -350,15 +405,24 @@
       return (n < 0 ? "-" : "") + "$" + Math.abs(n).toFixed(2);
     }
 
+    // Small helper to build a page element.
+    function el(tag, className, text) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = text;
+      return node;
+    }
+
     // ---- photo checklist ----
     const photoBoxes = document.getElementById("photo-boxes");
     PHOTO_TYPES.forEach(function (type) {
       const label = document.createElement("label");
+      label.className = "check";
       const box = document.createElement("input");
       box.type = "checkbox";
       box.id = "photo-" + type.key;
       label.appendChild(box);
-      label.appendChild(document.createTextNode(" " + type.label));
+      label.appendChild(document.createTextNode(type.label));
       photoBoxes.appendChild(label);
     });
 
@@ -486,12 +550,6 @@
       }
     });
 
-    // ---- show and hide the item form ----
-    function showForm() {
-      form.style.display = "block";
-      addItemButton.textContent = "Close form";
-    }
-
     // ---- item picture (a small copy is saved with the item in your browser) ----
     const picPreview = document.getElementById("pic-preview");
     const picFile = document.getElementById("pic-file");
@@ -557,6 +615,12 @@
         });
       picFile.value = "";
     });
+
+    // ---- show and hide the item form ----
+    function showForm() {
+      form.style.display = "block";
+      addItemButton.textContent = "Close form";
+    }
 
     function closeForm() {
       editingIndex = null;
@@ -918,6 +982,8 @@
           box.appendChild(bar);
         }
 
+        const buttons = el("div", "goal-buttons");
+
         const toggle = document.createElement("button");
         toggle.textContent = goal.purchased ? "Undo" : "Mark purchased";
         toggle.onclick = function () {
@@ -928,9 +994,10 @@
           save();
           render();
         };
-        box.appendChild(toggle);
+        buttons.appendChild(toggle);
 
         const remove = document.createElement("button");
+        remove.className = "danger";
         remove.textContent = "Delete";
         remove.onclick = function () {
           if (confirm("Delete goal " + goal.name + "?")) {
@@ -939,7 +1006,8 @@
             render();
           }
         };
-        box.appendChild(remove);
+        buttons.appendChild(remove);
+        box.appendChild(buttons);
 
         if (goal.purchased) {
           doneList.appendChild(box);
@@ -979,99 +1047,80 @@
         if (statusFilter !== "All" && item.status !== statusFilter) return;
         shown++;
 
-        const row = document.createElement("tr");
-        row.className = STATUS_CLASS[item.status] || "";
+        const card = el("div", "card " + (STATUS_CLASS[item.status] || ""));
+        const top = el("div", "card-top");
 
         // Picture
-        const picCell = document.createElement("td");
         if (item.picture) {
-          const pic = document.createElement("img");
-          pic.className = "thumb";
+          const pic = el("img", "thumb");
           pic.src = item.picture;
           pic.alt = item.name;
-          picCell.appendChild(pic);
+          top.appendChild(pic);
+        } else {
+          top.appendChild(el("div", "thumb empty", "No picture"));
         }
-        row.appendChild(picCell);
 
-        // Photos
-        const photoCell = document.createElement("td");
+        const main = el("div", "card-main");
+        main.appendChild(el("div", "card-title", item.name));
+
+        // Site, status and the photo checklist
+        const meta = el("div", "card-meta", item.site + " · " + item.status);
         const count = photoCount(item);
         if (count === PHOTO_TYPES.length) {
-          photoCell.textContent = "✓";
-          photoCell.className = "photo-ok";
-          photoCell.title = "All photos taken";
+          const badge = el("span", "badge ok", "✓ Photos");
+          badge.title = "All photos taken";
+          meta.appendChild(badge);
         } else {
-          photoCell.textContent = count + "/" + PHOTO_TYPES.length;
-          photoCell.className = "photo-partial";
-          photoCell.title = "Photos taken";
+          const badge = el("span", "badge", "Photos " + count + "/" + PHOTO_TYPES.length);
+          badge.title = "Photos taken";
+          meta.appendChild(badge);
         }
-        row.appendChild(photoCell);
-
-        // Item, site, status
-        [item.name, item.site, item.status].forEach(function (text) {
-          const td = document.createElement("td");
-          td.textContent = text;
-          row.appendChild(td);
-        });
+        main.appendChild(meta);
 
         // Price
-        const priceCell = document.createElement("td");
-        const priceMain = document.createElement("div");
+        const priceBox = el("div", "card-price");
         if (item.status === "Sold") {
-          priceMain.textContent = "Sold " + money(salePrice(item));
-          priceCell.appendChild(priceMain);
+          priceBox.textContent = "Sold " + money(salePrice(item));
+          main.appendChild(priceBox);
           if (item.original !== salePrice(item)) {
-            const note = document.createElement("div");
-            note.className = "small";
-            note.textContent = "listed at " + money(item.original);
-            priceCell.appendChild(note);
+            main.appendChild(el("div", "small", "listed at " + money(item.original)));
           }
+          main.appendChild(el("div", "card-profit", "Profit " + money(profit)));
         } else {
-          priceMain.textContent = item.original !== item.current
+          priceBox.textContent = item.original !== item.current
             ? money(item.original) + " → " + money(item.current)
             : money(item.current);
-          priceCell.appendChild(priceMain);
+          main.appendChild(priceBox);
           const d = daysAtPrice(item);
           if (d !== null) {
-            const note = document.createElement("div");
             if (isDue(item)) {
-              note.className = "due";
-              note.textContent = "⏰ Reduce price (" + d + (d === 1 ? " day" : " days") + ")";
+              main.appendChild(el("div", "due", "⏰ Reduce price (" + d + (d === 1 ? " day" : " days") + ")"));
             } else {
-              note.className = "small";
-              note.textContent = d + (d === 1 ? " day" : " days") + " at this price";
+              main.appendChild(el("div", "small", d + (d === 1 ? " day" : " days") + " at this price"));
             }
-            priceCell.appendChild(note);
           }
         }
-        row.appendChild(priceCell);
-
-        // Profit
-        const profitCell = document.createElement("td");
-        profitCell.textContent = profit === null ? "-" : money(profit);
-        row.appendChild(profitCell);
+        top.appendChild(main);
+        card.appendChild(top);
 
         // Buttons
-        const actionCell = document.createElement("td");
+        const actions = el("div", "card-actions");
 
-        const editButton = document.createElement("button");
-        editButton.textContent = "Edit";
+        const editButton = el("button", "", "Edit");
         editButton.onclick = function () {
           startEdit(index);
         };
-        actionCell.appendChild(editButton);
+        actions.appendChild(editButton);
 
         if (item.status === "Listed") {
-          const lowerButton = document.createElement("button");
-          lowerButton.textContent = "Lower price";
+          const lowerButton = el("button", "", "Lower price");
           lowerButton.onclick = function () {
             lowerPrice(item);
           };
-          actionCell.appendChild(lowerButton);
+          actions.appendChild(lowerButton);
         }
 
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "Delete";
+        const deleteButton = el("button", "danger", "Delete");
         deleteButton.onclick = function () {
           if (confirm("Delete " + item.name + "?")) {
             items.splice(index, 1);
@@ -1080,10 +1129,10 @@
             render();
           }
         };
-        actionCell.appendChild(deleteButton);
+        actions.appendChild(deleteButton);
 
-        row.appendChild(actionCell);
-        list.appendChild(row);
+        card.appendChild(actions);
+        list.appendChild(card);
       });
 
       const parts = [];
