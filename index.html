@@ -13,6 +13,11 @@
     #cancel-edit { display: none; }
     #bump-percent-row { display: none; margin-left: 24px; }
     #bump-note { margin-left: 24px; color: #444; }
+    fieldset { margin: 10px 0; }
+    fieldset label { display: inline-block; margin-right: 12px; }
+    .photo-ok { color: #1a7f37; font-weight: bold; }
+    .photo-partial { color: #666; }
+    .list-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .goal { border-bottom: 1px solid #ccc; padding: 8px 0; }
     .goal progress { width: 100%; height: 16px; }
     .done { color: #666; text-decoration: line-through; }
@@ -44,12 +49,17 @@
     </label>
     <label>Status
       <select id="status">
-        <option>Not photographed</option>
-        <option>Photographed</option>
+        <option>In progress</option>
         <option>Listed</option>
         <option>Sold</option>
       </select>
     </label>
+
+    <fieldset>
+      <legend>Photos taken</legend>
+      <div id="photo-boxes"></div>
+    </fieldset>
+
     <label>Date posted <input id="posted" type="date"></label>
     <label>Date sold <input id="sold" type="date"></label>
     <label>Days to sell <input id="days" type="number" min="0" step="1"></label>
@@ -112,10 +122,20 @@
   </form>
   <div id="goal-list"></div>
 
-  <h2>Item list</h2>
+  <div class="list-header">
+    <h2>Item list</h2>
+    <label>Show
+      <select id="filter">
+        <option>All</option>
+        <option>Depop</option>
+        <option>Vinted</option>
+      </select>
+    </label>
+  </div>
+  <div id="list-count"></div>
   <table>
     <thead>
-      <tr><th>Item</th><th>Site</th><th>Status</th><th>Days to sell</th><th>Profit</th><th></th></tr>
+      <tr><th>Photos</th><th>Item</th><th>Site</th><th>Status</th><th>Days to sell</th><th>Profit</th><th></th></tr>
     </thead>
     <tbody id="list"></tbody>
   </table>
@@ -128,10 +148,22 @@
     };
     const PLATFORM_NAMES = Object.keys(PLATFORMS);
 
+    const STATUSES = ["In progress", "Listed", "Sold"];
+
+    // Add or rename photo types here.
+    const PHOTO_TYPES = [
+      { key: "tag", label: "Tag" },
+      { key: "front", label: "Front" },
+      { key: "back", label: "Back" },
+      { key: "sleeves", label: "Sleeves" },
+      { key: "care", label: "Care instructions" }
+    ];
+
     let items = [];
     let goals = [];
     let balances = {};
     let editingIndex = null;
+    let filter = "All";
 
     try {
       items = JSON.parse(localStorage.getItem("items")) || [];
@@ -148,6 +180,16 @@
     } catch (e) {
       balances = {};
     }
+    try {
+      const savedFilter = localStorage.getItem("filter");
+      if (savedFilter === "Depop" || savedFilter === "Vinted") filter = savedFilter;
+    } catch (e) {}
+
+    // Convert older saved items to the newer format.
+    items.forEach(function (item) {
+      if (STATUSES.indexOf(item.status) === -1) item.status = "In progress";
+      if (!item.photos) item.photos = {};
+    });
 
     const form = document.getElementById("item-form");
     const submitButton = document.getElementById("submit-button");
@@ -161,17 +203,39 @@
     const bumpPercentInput = document.getElementById("bump-percent");
     const bumpPercentRow = document.getElementById("bump-percent-row");
     const bumpNote = document.getElementById("bump-note");
+    const filterInput = document.getElementById("filter");
 
     function save() {
       try {
         localStorage.setItem("items", JSON.stringify(items));
         localStorage.setItem("goals", JSON.stringify(goals));
         localStorage.setItem("balances", JSON.stringify(balances));
+        localStorage.setItem("filter", filter);
       } catch (e) {}
     }
 
     function money(n) {
       return (n < 0 ? "-" : "") + "$" + Math.abs(n).toFixed(2);
+    }
+
+    // ---- photo checklist ----
+    const photoBoxes = document.getElementById("photo-boxes");
+    PHOTO_TYPES.forEach(function (type) {
+      const label = document.createElement("label");
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.id = "photo-" + type.key;
+      label.appendChild(box);
+      label.appendChild(document.createTextNode(" " + type.label));
+      photoBoxes.appendChild(label);
+    });
+
+    function photoCount(item) {
+      let count = 0;
+      PHOTO_TYPES.forEach(function (type) {
+        if (item.photos && item.photos[type.key]) count++;
+      });
+      return count;
     }
 
     // ---- fees and profit ----
@@ -265,6 +329,9 @@
       document.getElementById("name").value = item.name;
       siteInput.value = item.site;
       document.getElementById("status").value = item.status;
+      PHOTO_TYPES.forEach(function (type) {
+        document.getElementById("photo-" + type.key).checked = !!(item.photos && item.photos[type.key]);
+      });
       postedInput.value = item.posted || "";
       soldInput.value = item.sold || "";
       const d = daysToSell(item);
@@ -290,6 +357,14 @@
         save();
         render();
       });
+    });
+
+    // ---- platform filter for the item list ----
+    filterInput.value = filter;
+    filterInput.addEventListener("change", function () {
+      filter = filterInput.value;
+      save();
+      render();
     });
 
     function renderGoals(balance) {
@@ -348,16 +423,35 @@
       const list = document.getElementById("list");
       list.innerHTML = "";
       let itemTotal = 0;
+      let shown = 0;
       const itemByPlatform = {};
       PLATFORM_NAMES.forEach(function (name) { itemByPlatform[name] = 0; });
 
       items.forEach(function (item, index) {
-        const row = document.createElement("tr");
+        // Totals always count every item, whatever the filter says.
         const profit = item.status === "Sold" ? profitOf(item) : null;
         if (profit !== null) {
           itemTotal += profit;
           if (itemByPlatform[item.site] !== undefined) itemByPlatform[item.site] += profit;
         }
+
+        if (filter !== "All" && item.site !== filter) return;
+        shown++;
+
+        const row = document.createElement("tr");
+
+        const photoCell = document.createElement("td");
+        const count = photoCount(item);
+        if (count === PHOTO_TYPES.length) {
+          photoCell.textContent = "\u2713";
+          photoCell.className = "photo-ok";
+          photoCell.title = "All photos taken";
+        } else {
+          photoCell.textContent = count + "/" + PHOTO_TYPES.length;
+          photoCell.className = "photo-partial";
+          photoCell.title = "Photos taken";
+        }
+        row.appendChild(photoCell);
 
         const d = daysToSell(item);
         const cells = [
@@ -398,6 +492,9 @@
         list.appendChild(row);
       });
 
+      document.getElementById("list-count").textContent =
+        "Showing " + shown + " of " + items.length + " items" + (filter === "All" ? "" : " (" + filter + ")");
+
       let startTotal = 0;
       PLATFORM_NAMES.forEach(function (name) {
         const start = balances[name] || 0;
@@ -430,10 +527,16 @@
         return;
       }
 
+      const photos = {};
+      PHOTO_TYPES.forEach(function (type) {
+        photos[type.key] = document.getElementById("photo-" + type.key).checked;
+      });
+
       const item = {
         name: document.getElementById("name").value,
         site: siteInput.value,
         status: document.getElementById("status").value,
+        photos: photos,
         posted: postedInput.value,
         sold: soldInput.value,
         price: Number(priceInput.value),
@@ -474,19 +577,28 @@
     }
 
     document.getElementById("export-button").addEventListener("click", function () {
-      const rows = [["Item", "Site", "Status", "Date posted", "Date sold", "Days to sell", "Sale price", "Other fees", "Bumped", "Bump %", "Total fees", "Shipping", "Cost", "Profit"]];
+      const header = ["Item", "Site", "Status"];
+      PHOTO_TYPES.forEach(function (type) { header.push("Photo: " + type.label); });
+      header.push("Date posted", "Date sold", "Days to sell", "Sale price", "Other fees", "Bumped", "Bump %", "Total fees", "Shipping", "Cost", "Profit");
+      const rows = [header];
+
       items.forEach(function (item) {
         const d = daysToSell(item);
-        rows.push([
-          item.name, item.site, item.status,
+        const row = [item.name, item.site, item.status];
+        PHOTO_TYPES.forEach(function (type) {
+          row.push(item.photos && item.photos[type.key] ? "Yes" : "No");
+        });
+        row.push(
           item.posted || "", item.sold || "", d === null ? "" : d,
           item.price.toFixed(2), (item.fees || 0).toFixed(2),
           item.bump ? "Yes" : "No", item.bump ? (item.bumpPercent || 0) : "",
           feeTotal(item).toFixed(2),
           item.shipping.toFixed(2), item.cost.toFixed(2),
           item.status === "Sold" ? profitOf(item).toFixed(2) : ""
-        ]);
+        );
+        rows.push(row);
       });
+
       const csv = rows.map(function (r) { return r.map(csvCell).join(","); }).join("\n");
       const blob = new Blob([csv], { type: "text/csv" });
       const link = document.createElement("a");
