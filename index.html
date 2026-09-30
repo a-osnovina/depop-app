@@ -10,7 +10,8 @@
     table { width: 100%; border-collapse: collapse; margin-top: 12px; }
     th, td { border-bottom: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; }
     #balance-table input { width: 110px; }
-    #cancel-edit { display: none; }
+    #item-form, #goal-form { display: none; border: 1px solid #ccc; border-radius: 8px; padding: 6px 14px 12px; margin: 10px 0; }
+    #item-form { scroll-margin-top: 110px; }
     #bump-percent-row { display: none; margin-left: 24px; }
     #sold-for-row { display: none; }
     #bump-note { margin-left: 24px; color: #444; }
@@ -21,8 +22,9 @@
     .small { font-size: 12px; color: #555; }
     .due { font-size: 12px; color: #b42318; font-weight: bold; }
     #reduce-banner { display: none; background: #fdecea; color: #b42318; border-radius: 6px; padding: 8px 12px; margin-top: 10px; }
-    .list-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .list-tools { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+    .section-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 22px; }
+    .section-head h2 { margin: 0; }
+    .list-tools { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
     .list-tools label { margin: 0; }
     #remind-days { width: 60px; }
     .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; margin-top: 8px; }
@@ -33,6 +35,12 @@
     .goal { border-bottom: 1px solid #ccc; padding: 8px 0; }
     .goal progress { width: 100%; height: 16px; }
     .done { color: #666; text-decoration: line-through; }
+    details summary { cursor: pointer; }
+    #balances { margin-top: 22px; }
+    #balances > summary { font-size: 1.5em; font-weight: bold; }
+    #purchased-goals { display: none; margin-top: 10px; }
+    #purchased-goals > summary { color: #444; }
+    #no-goals { color: #666; margin-top: 8px; }
 
     .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     .summary { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 24px; background: #eeeeee; border-radius: 0 0 8px 8px; padding: 10px 18px; margin: 0 0 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
@@ -61,7 +69,12 @@
     <button type="button" id="export-button">Export CSV</button>
   </div>
 
-  <h2>Items</h2>
+  <!-- ITEM LIST -->
+  <div class="section-head">
+    <h2>Item list</h2>
+    <button type="button" id="add-item-button">+ Add item</button>
+  </div>
+
   <form id="item-form">
     <label>Item name <input id="name" required></label>
     <label>Site
@@ -96,58 +109,20 @@
     <div id="bump-note"></div>
 
     <button type="submit" id="submit-button">Add item</button>
-    <button type="button" id="cancel-edit">Cancel edit</button>
+    <button type="button" id="cancel-edit">Cancel</button>
   </form>
 
-  <h2>Platform balances</h2>
-  <table id="balance-table">
-    <thead>
-      <tr><th>Platform</th><th>Starting balance ($)</th><th>Item profit</th><th>Total</th></tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Depop</td>
-        <td><input id="start-Depop" type="number" step="0.01" min="0" placeholder="0.00"></td>
-        <td id="item-Depop">$0.00</td>
-        <td id="sum-Depop">$0.00</td>
-      </tr>
-      <tr>
-        <td>Vinted</td>
-        <td><input id="start-Vinted" type="number" step="0.01" min="0" placeholder="0.00"></td>
-        <td id="item-Vinted">$0.00</td>
-        <td id="sum-Vinted">$0.00</td>
-      </tr>
-      <tr>
-        <td><strong>Combined</strong></td>
-        <td id="start-all">$0.00</td>
-        <td id="item-all">$0.00</td>
-        <td id="sum-all"><strong>$0.00</strong></td>
-      </tr>
-    </tbody>
-  </table>
-
-  <h2>Goals</h2>
-  <form id="goal-form">
-    <label>Goal name <input id="goal-name" required></label>
-    <label>Amount ($) <input id="goal-amount" type="number" step="0.01" min="0.01" required></label>
-    <button type="submit">Add goal</button>
-  </form>
-  <div id="goal-list"></div>
-
-  <div class="list-header">
-    <h2>Item list</h2>
-    <div class="list-tools">
-      <label>Show
-        <select id="filter">
-          <option>All</option>
-          <option>Depop</option>
-          <option>Vinted</option>
-        </select>
-      </label>
-      <label>Remind me to lower prices after
-        <input id="remind-days" type="number" min="1" step="1" value="7"> days
-      </label>
-    </div>
+  <div class="list-tools">
+    <label>Show
+      <select id="filter">
+        <option>All</option>
+        <option>Depop</option>
+        <option>Vinted</option>
+      </select>
+    </label>
+    <label>Remind me to lower prices after
+      <input id="remind-days" type="number" min="1" step="1" value="7"> days
+    </label>
   </div>
   <div id="reduce-banner"></div>
   <div class="legend">
@@ -162,6 +137,56 @@
     </thead>
     <tbody id="list"></tbody>
   </table>
+
+  <!-- GOALS -->
+  <div class="section-head">
+    <h2>Goals</h2>
+    <button type="button" id="add-goal-button">+ Add goal</button>
+  </div>
+
+  <form id="goal-form">
+    <label>Goal name <input id="goal-name" required></label>
+    <label>Amount ($) <input id="goal-amount" type="number" step="0.01" min="0.01" required></label>
+    <button type="submit">Save goal</button>
+  </form>
+
+  <div id="goal-list"></div>
+  <div id="no-goals">No goals in progress.</div>
+
+  <details id="purchased-goals">
+    <summary id="purchased-summary">Purchased goals (0)</summary>
+    <div id="purchased-list"></div>
+  </details>
+
+  <!-- PLATFORM BALANCES -->
+  <details id="balances">
+    <summary>Platform balances</summary>
+    <table id="balance-table">
+      <thead>
+        <tr><th>Platform</th><th>Starting balance ($)</th><th>Item profit</th><th>Total</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Depop</td>
+          <td><input id="start-Depop" type="number" step="0.01" min="0" placeholder="0.00"></td>
+          <td id="item-Depop">$0.00</td>
+          <td id="sum-Depop">$0.00</td>
+        </tr>
+        <tr>
+          <td>Vinted</td>
+          <td><input id="start-Vinted" type="number" step="0.01" min="0" placeholder="0.00"></td>
+          <td id="item-Vinted">$0.00</td>
+          <td id="sum-Vinted">$0.00</td>
+        </tr>
+        <tr>
+          <td><strong>Combined</strong></td>
+          <td id="start-all">$0.00</td>
+          <td id="item-all">$0.00</td>
+          <td id="sum-all"><strong>$0.00</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </details>
 
   <script>
     // Change bump wording or the default percent for each platform here.
@@ -223,6 +248,7 @@
     });
 
     const form = document.getElementById("item-form");
+    const addItemButton = document.getElementById("add-item-button");
     const submitButton = document.getElementById("submit-button");
     const cancelButton = document.getElementById("cancel-edit");
     const siteInput = document.getElementById("site");
@@ -240,6 +266,8 @@
     const bumpNote = document.getElementById("bump-note");
     const filterInput = document.getElementById("filter");
     const remindInput = document.getElementById("remind-days");
+    const goalForm = document.getElementById("goal-form");
+    const addGoalButton = document.getElementById("add-goal-button");
 
     function save() {
       try {
@@ -391,14 +419,33 @@
       }
     });
 
-    function cancelEdit() {
+    // ---- show and hide the item form ----
+    function showForm() {
+      form.style.display = "block";
+      addItemButton.textContent = "Close form";
+    }
+
+    function closeForm() {
       editingIndex = null;
       form.reset();
       updateSoldForUI();
       updateBumpUI(true);
       submitButton.textContent = "Add item";
-      cancelButton.style.display = "none";
+      form.style.display = "none";
+      addItemButton.textContent = "+ Add item";
     }
+
+    addItemButton.addEventListener("click", function () {
+      if (form.style.display === "block") {
+        closeForm();
+      } else {
+        editingIndex = null;
+        showForm();
+        document.getElementById("name").focus();
+      }
+    });
+
+    cancelButton.addEventListener("click", closeForm);
 
     function startEdit(index) {
       const item = items[index];
@@ -421,8 +468,8 @@
       updateSoldForUI();
       updateBumpUI(false);
       submitButton.textContent = "Save changes";
-      cancelButton.style.display = "inline";
-      window.scrollTo(0, 0);
+      showForm();
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     // ---- starting balances (typed by you) ----
@@ -469,9 +516,26 @@
       render();
     }
 
+    // ---- goals ----
+    addGoalButton.addEventListener("click", function () {
+      if (goalForm.style.display === "block") {
+        goalForm.style.display = "none";
+        goalForm.reset();
+        addGoalButton.textContent = "+ Add goal";
+      } else {
+        goalForm.style.display = "block";
+        addGoalButton.textContent = "Close form";
+        document.getElementById("goal-name").focus();
+      }
+    });
+
     function renderGoals(balance) {
-      const goalList = document.getElementById("goal-list");
-      goalList.innerHTML = "";
+      const activeList = document.getElementById("goal-list");
+      const doneList = document.getElementById("purchased-list");
+      activeList.innerHTML = "";
+      doneList.innerHTML = "";
+      let activeCount = 0;
+      let doneCount = 0;
 
       goals.forEach(function (goal, index) {
         const box = document.createElement("div");
@@ -517,8 +581,18 @@
         };
         box.appendChild(remove);
 
-        goalList.appendChild(box);
+        if (goal.purchased) {
+          doneList.appendChild(box);
+          doneCount++;
+        } else {
+          activeList.appendChild(box);
+          activeCount++;
+        }
       });
+
+      document.getElementById("no-goals").style.display = activeCount === 0 ? "block" : "none";
+      document.getElementById("purchased-goals").style.display = doneCount === 0 ? "none" : "block";
+      document.getElementById("purchased-summary").textContent = "Purchased goals (" + doneCount + ")";
     }
 
     function render() {
@@ -631,7 +705,7 @@
         deleteButton.onclick = function () {
           if (confirm("Delete " + item.name + "?")) {
             items.splice(index, 1);
-            cancelEdit();
+            closeForm();
             save();
             render();
           }
@@ -721,14 +795,12 @@
       } else {
         items[editingIndex] = item;
       }
-      cancelEdit();
+      closeForm();
       save();
       render();
     });
 
-    cancelButton.addEventListener("click", cancelEdit);
-
-    document.getElementById("goal-form").addEventListener("submit", function (event) {
+    goalForm.addEventListener("submit", function (event) {
       event.preventDefault();
       goals.push({
         name: document.getElementById("goal-name").value,
@@ -737,7 +809,9 @@
       });
       save();
       render();
-      event.target.reset();
+      goalForm.reset();
+      goalForm.style.display = "none";
+      addGoalButton.textContent = "+ Add goal";
     });
 
     function csvCell(value) {
@@ -778,8 +852,7 @@
       link.click();
     });
 
-    updateSoldForUI();
-    updateBumpUI(true);
+    closeForm();
     render();
   </script>
 </body>
