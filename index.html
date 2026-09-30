@@ -28,6 +28,8 @@
     #import-note.warn { background: #fff4d6; color: #6b4a00; }
     #import-raw { display: none; margin-top: 6px; font-size: 12px; color: #555; }
     #import-raw pre { white-space: pre-wrap; background: #f6f6f6; padding: 8px; border-radius: 6px; margin: 6px 0 0; }
+    .thumb { display: block; width: 56px; height: 56px; object-fit: cover; object-position: top; border-radius: 6px; background: #ddd; }
+    #pic-preview { display: none; width: 90px; height: 90px; object-fit: cover; object-position: top; border-radius: 8px; margin: 6px 0; }
     .list-tools { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
     .list-tools label { margin: 0; }
     #remind-days { width: 60px; }
@@ -174,6 +176,16 @@
       </select>
     </label>
 
+    <div>
+      <div class="small">Picture shown in your list</div>
+      <img id="pic-preview" alt="Item picture">
+      <div>
+        <button type="button" id="pic-choose">Choose picture</button>
+        <button type="button" id="pic-remove">Remove picture</button>
+        <input type="file" id="pic-file" accept="image/*" hidden>
+      </div>
+    </div>
+
     <fieldset>
       <legend>Photos taken</legend>
       <div id="photo-boxes"></div>
@@ -218,7 +230,7 @@
   <div id="reduce-banner"></div>
   <table>
     <thead>
-      <tr><th>Photos</th><th>Item</th><th>Site</th><th>Status</th><th>Price</th><th>Profit</th><th></th></tr>
+      <tr><th></th><th>Photos</th><th>Item</th><th>Site</th><th>Status</th><th>Price</th><th>Profit</th><th></th></tr>
     </thead>
     <tbody id="list"></tbody>
   </table>
@@ -254,9 +266,10 @@
     let filter = "All";
     let statusFilter = "All";
     let remindDays = 7;
+    let formPhoto = "";
 
     try {
-      items = JSON.parse(localStorage.getItem("items")) || [];
+      items =JSON.parse(localStorage.getItem("items")) || [];
     } catch (e) {
       items = [];
     }
@@ -287,6 +300,7 @@
       if (item.current === undefined) item.current = Number(item.price) || 0;
       if (item.soldFor === undefined) item.soldFor = item.status === "Sold" ? (Number(item.price) || 0) : null;
       if (!item.priceChanged) item.priceChanged = "";
+      if (!item.picture) item.picture = "";
     });
 
     const form = document.getElementById("item-form");
@@ -327,7 +341,9 @@
         localStorage.setItem("filter", filter);
         localStorage.setItem("statusFilter", statusFilter);
         localStorage.setItem("remindDays", String(remindDays));
-      } catch (e) {}
+      } catch (e) {
+        alert("Your browser is full, so the latest change could not be saved. Export a CSV and remove some pictures or old items.");
+      }
     }
 
     function money(n) {
@@ -476,9 +492,76 @@
       addItemButton.textContent = "Close form";
     }
 
+    // ---- item picture (a small copy is saved with the item in your browser) ----
+    const picPreview = document.getElementById("pic-preview");
+    const picFile = document.getElementById("pic-file");
+
+    function setFormPhoto(dataUrl) {
+      formPhoto = dataUrl || "";
+      picPreview.src = formPhoto;
+      picPreview.style.display = formPhoto ? "block" : "none";
+    }
+
+    function loadImage(file) {
+      return new Promise(function (resolve, reject) {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = function () { URL.revokeObjectURL(url); resolve(img); };
+        img.onerror = function () { URL.revokeObjectURL(url); reject(new Error("that file isn't a picture")); };
+        img.src = url;
+      });
+    }
+
+    // Copies the chosen part of the picture into a small JPEG so saving stays light.
+    function makeThumb(img, box) {
+      const scale = Math.min(1, 240 / box.w);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(box.w * scale));
+      canvas.height = Math.max(1, Math.round(box.h * scale));
+      canvas.getContext("2d").drawImage(img, box.x, box.y, box.w, box.h, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL("image/jpeg", 0.75);
+    }
+
+    // In a Vinted screenshot the photo sits above the title, so cut everything from the title down.
+    function listingPhotoBox(img, lines, name) {
+      let bottom = Math.round(img.naturalHeight * 0.6);
+      if (lines && name) {
+        const wanted = name.toLowerCase();
+        for (let i = 0; i < lines.length; i++) {
+          if (lines[i].text.toLowerCase().indexOf(wanted) !== -1 && lines[i].bbox) {
+            bottom = Math.max(60, lines[i].bbox.y0 - 44);
+            break;
+          }
+        }
+      }
+      return { x: 0, y: 0, w: img.naturalWidth, h: Math.min(bottom, img.naturalHeight) };
+    }
+
+    document.getElementById("pic-choose").addEventListener("click", function () {
+      picFile.click();
+    });
+
+    document.getElementById("pic-remove").addEventListener("click", function () {
+      setFormPhoto("");
+    });
+
+    picFile.addEventListener("change", function () {
+      const file = picFile.files && picFile.files[0];
+      if (!file) return;
+      loadImage(file)
+        .then(function (img) {
+          setFormPhoto(makeThumb(img, { x: 0, y: 0, w: img.naturalWidth, h: img.naturalHeight }));
+        })
+        .catch(function (err) {
+          alert("Sorry, " + err.message + ".");
+        });
+      picFile.value = "";
+    });
+
     function closeForm() {
       editingIndex = null;
       form.reset();
+      setFormPhoto("");
       updateSoldForUI();
       updateBumpUI(true);
       submitButton.textContent = "Add item";
@@ -512,6 +595,7 @@
       PHOTO_TYPES.forEach(function (type) {
         document.getElementById("photo-" + type.key).checked = !!(item.photos && item.photos[type.key]);
       });
+      setFormPhoto(item.picture || "");
       postedInput.value = item.posted || "";
       soldInput.value = item.sold || "";
       const d = daysToSell(item);
@@ -634,7 +718,7 @@
           });
         })
         .then(function (result) {
-          fillFormFromListing(result.data.text);
+          return fillFormFromListing(result.data.text, file, result.data.lines);
         })
         .catch(function (err) {
           showImportNote("Sorry, the import didn't work (" + err.message + "). Check your internet connection and try again, or add the item by hand.", true);
@@ -645,7 +729,7 @@
         });
     });
 
-    function fillFormFromListing(text) {
+    function fillFormFromListing(text, file, lines) {
       const found = parseListing(text);
 
       closeForm();
@@ -685,6 +769,16 @@
       showImportNote(message, missing.length > 0 || duplicate);
       importRawText.textContent = text.trim() || "(nothing was read)";
       importRaw.style.display = "block";
+
+      // Crop the listing photo out of the screenshot and keep it for the list.
+      if (!file) return Promise.resolve();
+      return loadImage(file)
+        .then(function (img) {
+          setFormPhoto(makeThumb(img, listingPhotoBox(img, lines, found.name)));
+        })
+        .catch(function () {
+          showImportNote(importNote.textContent + " I couldn't keep a picture from it, but you can press Choose picture.", true);
+        });
     }
 
     // ---- starting balances (typed by you) ----
@@ -888,6 +982,17 @@
         const row = document.createElement("tr");
         row.className = STATUS_CLASS[item.status] || "";
 
+        // Picture
+        const picCell = document.createElement("td");
+        if (item.picture) {
+          const pic = document.createElement("img");
+          pic.className = "thumb";
+          pic.src = item.picture;
+          pic.alt = item.name;
+          picCell.appendChild(pic);
+        }
+        row.appendChild(picCell);
+
         // Photos
         const photoCell = document.createElement("td");
         const count = photoCount(item);
@@ -1049,6 +1154,7 @@
         site: siteInput.value,
         status: status,
         photos: photos,
+        picture: formPhoto,
         posted: postedInput.value,
         sold: soldInput.value,
         original: original,
