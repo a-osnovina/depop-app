@@ -11,7 +11,7 @@
     th, td { border-bottom: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; }
     #balance-table input { width: 110px; }
     #item-form, #goal-form { display: none; border: 1px solid #ccc; border-radius: 8px; padding: 6px 14px 12px; margin: 10px 0; }
-    #item-form { scroll-margin-top: 110px; }
+    #item-form { scroll-margin-top: 130px; }
     #bump-percent-row { display: none; margin-left: 24px; }
     #sold-for-row { display: none; }
     #bump-note { margin-left: 24px; color: #444; }
@@ -27,8 +27,7 @@
     .list-tools { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
     .list-tools label { margin: 0; }
     #remind-days { width: 60px; }
-    .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; margin-top: 8px; }
-    .chip { padding: 2px 10px; border-radius: 10px; }
+    .count-right { text-align: right; margin-top: 6px; }
     .row-progress { background: #fff4d6; }
     .row-listed { background: #e0efff; }
     .row-sold { background: #dff3e3; }
@@ -39,6 +38,9 @@
     #purchased-goals { display: none; margin-top: 10px; }
     #purchased-goals > summary { color: #444; }
     #no-goals { color: #666; margin-top: 8px; }
+    #overall-box { display: none; padding-bottom: 10px; border-bottom: 2px solid #ccc; margin-bottom: 4px; }
+    #overall-box progress { width: 100%; height: 18px; }
+    .panel-row { margin: 10px 0 4px; }
 
     .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     .summary { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 24px; background: #eeeeee; border-radius: 0 0 8px 8px; padding: 10px 18px; margin: 0 0 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
@@ -49,9 +51,11 @@
     .profit { color: #1a7f37; }
     .balance { color: #0b5cad; }
 
-    .balances-wrap { margin-left: auto; align-self: center; }
-    #balances > summary { color: #0b5cad; font-size: 14px; font-weight: bold; }
-    .balances-panel { position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid #ccc; border-radius: 0 0 8px 8px; padding: 6px 14px 12px; max-height: 60vh; overflow: auto; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
+    .side { margin-left: auto; align-self: center; display: flex; flex-direction: column; gap: 6px; }
+    .side > details > summary { color: #0b5cad; font-size: 14px; font-weight: bold; }
+    #goals-mini { display: none; }
+    #goals-mini progress { width: 170px; height: 10px; display: block; }
+    .dropdown-panel { position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid #ccc; border-radius: 0 0 8px 8px; padding: 6px 14px 12px; max-height: 60vh; overflow: auto; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
   </style>
 </head>
 <body>
@@ -65,10 +69,10 @@
       <span class="stat-value profit">$<span id="total">0.00</span></span>
     </div>
 
-    <div class="balances-wrap">
+    <div class="side">
       <details id="balances">
         <summary>Platform balances</summary>
-        <div class="balances-panel">
+        <div class="dropdown-panel">
           <table id="balance-table">
             <thead>
               <tr><th>Platform</th><th>Starting balance ($)</th><th>Item profit</th><th>Total</th></tr>
@@ -96,6 +100,39 @@
           </table>
         </div>
       </details>
+
+      <details id="goals-box">
+        <summary>Goals</summary>
+        <div class="dropdown-panel">
+          <div id="overall-box">
+            <div id="overall-text"></div>
+            <progress id="overall-bar" value="0" max="1"></progress>
+          </div>
+
+          <div class="panel-row">
+            <button type="button" id="add-goal-button">+ Add goal</button>
+          </div>
+
+          <form id="goal-form">
+            <label>Goal name <input id="goal-name" required></label>
+            <label>Amount ($) <input id="goal-amount" type="number" step="0.01" min="0.01" required></label>
+            <button type="submit">Save goal</button>
+          </form>
+
+          <div id="goal-list"></div>
+          <div id="no-goals">No goals in progress.</div>
+
+          <details id="purchased-goals">
+            <summary id="purchased-summary">Purchased goals (0)</summary>
+            <div id="purchased-list"></div>
+          </details>
+        </div>
+      </details>
+
+      <div id="goals-mini">
+        <progress id="mini-bar" value="0" max="1"></progress>
+        <div id="mini-text" class="small"></div>
+      </div>
     </div>
   </div>
 
@@ -168,38 +205,13 @@
     </label>
   </div>
   <div id="reduce-banner"></div>
-  <div class="legend">
-    <span class="chip row-progress">In progress</span>
-    <span class="chip row-listed">Listed</span>
-    <span class="chip row-sold">Sold</span>
-  </div>
-  <div id="list-count" class="small"></div>
   <table>
     <thead>
       <tr><th>Photos</th><th>Item</th><th>Site</th><th>Status</th><th>Price</th><th>Profit</th><th></th></tr>
     </thead>
     <tbody id="list"></tbody>
   </table>
-
-  <!-- GOALS -->
-  <div class="section-head">
-    <h2>Goals</h2>
-    <button type="button" id="add-goal-button">+ Add goal</button>
-  </div>
-
-  <form id="goal-form">
-    <label>Goal name <input id="goal-name" required></label>
-    <label>Amount ($) <input id="goal-amount" type="number" step="0.01" min="0.01" required></label>
-    <button type="submit">Save goal</button>
-  </form>
-
-  <div id="goal-list"></div>
-  <div id="no-goals">No goals in progress.</div>
-
-  <details id="purchased-goals">
-    <summary id="purchased-summary">Purchased goals (0)</summary>
-    <div id="purchased-list"></div>
-  </details>
+  <div id="list-count" class="small count-right"></div>
 
   <script>
     // Change bump wording or the default percent for each platform here.
@@ -286,6 +298,7 @@
     const goalForm = document.getElementById("goal-form");
     const addGoalButton = document.getElementById("add-goal-button");
     const balancesBox = document.getElementById("balances");
+    const goalsBox = document.getElementById("goals-box");
 
     function save() {
       try {
@@ -502,12 +515,20 @@
       });
     });
 
-    // Close the balances panel when you click elsewhere or press Escape.
+    // ---- the two dropdowns in the top box ----
+    // Clicking outside one closes it (so only one stays open), and Escape closes both.
+    // composedPath() is used because buttons inside a panel get rebuilt when the page redraws.
+    const dropdowns = [balancesBox, goalsBox];
     document.addEventListener("click", function (event) {
-      if (balancesBox.open && !balancesBox.contains(event.target)) balancesBox.open = false;
+      const path = event.composedPath();
+      dropdowns.forEach(function (box) {
+        if (box.open && path.indexOf(box) === -1) box.open = false;
+      });
     });
     document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") balancesBox.open = false;
+      if (event.key === "Escape") {
+        dropdowns.forEach(function (box) { box.open = false; });
+      }
     });
 
     // ---- filters and reminder setting ----
@@ -563,6 +584,33 @@
       }
     });
 
+    // The overall bar adds up every goal still in progress.
+    function renderOverall(balance, activeTotal, activeCount) {
+      const mini = document.getElementById("goals-mini");
+      const overall = document.getElementById("overall-box");
+
+      if (activeCount === 0) {
+        mini.style.display = "none";
+        overall.style.display = "none";
+        return;
+      }
+
+      const have = Math.max(0, Math.min(balance, activeTotal));
+      const goalWord = activeCount === 1 ? "goal" : "goals";
+
+      mini.style.display = "block";
+      document.getElementById("mini-bar").max = activeTotal;
+      document.getElementById("mini-bar").value = have;
+      document.getElementById("mini-text").textContent =
+        money(have) + " of " + money(activeTotal) + " (" + activeCount + " " + goalWord + ")";
+
+      overall.style.display = "block";
+      document.getElementById("overall-bar").max = activeTotal;
+      document.getElementById("overall-bar").value = have;
+      document.getElementById("overall-text").textContent =
+        "All goals together: " + money(have) + " of " + money(activeTotal) + " (" + activeCount + " " + goalWord + ")";
+    }
+
     function renderGoals(balance) {
       const activeList = document.getElementById("goal-list");
       const doneList = document.getElementById("purchased-list");
@@ -570,6 +618,7 @@
       doneList.innerHTML = "";
       let activeCount = 0;
       let doneCount = 0;
+      let activeTotal = 0;
 
       goals.forEach(function (goal, index) {
         const box = document.createElement("div");
@@ -621,12 +670,14 @@
         } else {
           activeList.appendChild(box);
           activeCount++;
+          activeTotal += goal.amount;
         }
       });
 
       document.getElementById("no-goals").style.display = activeCount === 0 ? "block" : "none";
       document.getElementById("purchased-goals").style.display = doneCount === 0 ? "none" : "block";
       document.getElementById("purchased-summary").textContent = "Purchased goals (" + doneCount + ")";
+      renderOverall(balance, activeTotal, activeCount);
     }
 
     function render() {
