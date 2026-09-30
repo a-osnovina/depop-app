@@ -5,25 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Resale Tracker</title>
   <style>
-    body { font-family: sans-serif; max-width: 700px; margin: 20px auto; padding: 0 16px; }
+    body { font-family: sans-serif; max-width: 760px; margin: 0 auto; padding: 0 16px 24px; }
     label { display: block; margin: 6px 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-    th, td { border-bottom: 1px solid #ccc; padding: 6px; text-align: left; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { border-bottom: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; }
     #balance-table input { width: 110px; }
     #cancel-edit { display: none; }
     #bump-percent-row { display: none; margin-left: 24px; }
+    #sold-for-row { display: none; }
     #bump-note { margin-left: 24px; color: #444; }
     fieldset { margin: 10px 0; }
     fieldset label { display: inline-block; margin-right: 12px; }
     .photo-ok { color: #1a7f37; font-weight: bold; }
     .photo-partial { color: #666; }
+    .small { font-size: 12px; color: #555; }
+    .due { font-size: 12px; color: #b42318; font-weight: bold; }
+    #reduce-banner { display: none; background: #fdecea; color: #b42318; border-radius: 6px; padding: 8px 12px; margin-top: 10px; }
     .list-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .list-tools { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+    .list-tools label { margin: 0; }
+    #remind-days { width: 60px; }
+    .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; margin-top: 8px; }
+    .chip { padding: 2px 10px; border-radius: 10px; }
+    .row-progress { background: #fff4d6; }
+    .row-listed { background: #e0efff; }
+    .row-sold { background: #dff3e3; }
     .goal { border-bottom: 1px solid #ccc; padding: 8px 0; }
     .goal progress { width: 100%; height: 16px; }
     .done { color: #666; text-decoration: line-through; }
 
     .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    .summary { display: flex; flex-wrap: wrap; gap: 24px; background: #eeeeee; border-radius: 8px; padding: 14px 18px; margin: 16px 0; }
+    .summary { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 24px; background: #eeeeee; border-radius: 0 0 8px 8px; padding: 10px 18px; margin: 0 0 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
     .stat { display: flex; flex-direction: column; }
     .stat-label { font-size: 14px; color: #444; }
     .stat-value { font-size: 20px; font-weight: bold; }
@@ -33,6 +45,17 @@
   </style>
 </head>
 <body>
+  <div class="summary">
+    <div class="stat main">
+      <span class="stat-label">Available balance</span>
+      <span class="stat-value balance">$<span id="balance">0.00</span></span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Total profit</span>
+      <span class="stat-value profit">$<span id="total">0.00</span></span>
+    </div>
+  </div>
+
   <div class="top">
     <h1>Resale Tracker</h1>
     <button type="button" id="export-button">Export CSV</button>
@@ -63,29 +86,18 @@
     <label>Date posted <input id="posted" type="date"></label>
     <label>Date sold <input id="sold" type="date"></label>
     <label>Days to sell <input id="days" type="number" min="0" step="1"></label>
-    <label>Sale price ($) <input id="price" type="number" step="0.01" min="0" value="0"></label>
+
+    <label>Original listed price ($) <input id="original" type="number" step="0.01" min="0" value="0"></label>
+    <label>Current price ($) <input id="current" type="number" step="0.01" min="0" placeholder="same as original"></label>
+    <label id="sold-for-row">Sold for ($) <input id="sold-for" type="number" step="0.01" min="0" placeholder="same as current price"></label>
 
     <label><input type="checkbox" id="bump"> <span id="bump-label"></span></label>
     <label id="bump-percent-row">Bump cost (% of sale price) <input id="bump-percent" type="number" step="0.1" min="0" value="12"></label>
     <div id="bump-note"></div>
 
-    <label>Other fees ($) <input id="fees" type="number" step="0.01" min="0" value="0"></label>
-    <label>Shipping ($) <input id="shipping" type="number" step="0.01" min="0" value="0"></label>
-    <label>Cost ($) <input id="cost" type="number" step="0.01" min="0" value="0"></label>
     <button type="submit" id="submit-button">Add item</button>
     <button type="button" id="cancel-edit">Cancel edit</button>
   </form>
-
-  <div class="summary">
-    <div class="stat main">
-      <span class="stat-label">Available balance</span>
-      <span class="stat-value balance">$<span id="balance">0.00</span></span>
-    </div>
-    <div class="stat">
-      <span class="stat-label">Total profit</span>
-      <span class="stat-value profit">$<span id="total">0.00</span></span>
-    </div>
-  </div>
 
   <h2>Platform balances</h2>
   <table id="balance-table">
@@ -124,18 +136,29 @@
 
   <div class="list-header">
     <h2>Item list</h2>
-    <label>Show
-      <select id="filter">
-        <option>All</option>
-        <option>Depop</option>
-        <option>Vinted</option>
-      </select>
-    </label>
+    <div class="list-tools">
+      <label>Show
+        <select id="filter">
+          <option>All</option>
+          <option>Depop</option>
+          <option>Vinted</option>
+        </select>
+      </label>
+      <label>Remind me to lower prices after
+        <input id="remind-days" type="number" min="1" step="1" value="7"> days
+      </label>
+    </div>
   </div>
-  <div id="list-count"></div>
+  <div id="reduce-banner"></div>
+  <div class="legend">
+    <span class="chip row-progress">In progress</span>
+    <span class="chip row-listed">Listed</span>
+    <span class="chip row-sold">Sold</span>
+  </div>
+  <div id="list-count" class="small"></div>
   <table>
     <thead>
-      <tr><th>Photos</th><th>Item</th><th>Site</th><th>Status</th><th>Days to sell</th><th>Profit</th><th></th></tr>
+      <tr><th>Photos</th><th>Item</th><th>Site</th><th>Status</th><th>Price</th><th>Days to sell</th><th>Profit</th><th></th></tr>
     </thead>
     <tbody id="list"></tbody>
   </table>
@@ -149,6 +172,7 @@
     const PLATFORM_NAMES = Object.keys(PLATFORMS);
 
     const STATUSES = ["In progress", "Listed", "Sold"];
+    const STATUS_CLASS = { "In progress": "row-progress", "Listed": "row-listed", "Sold": "row-sold" };
 
     // Add or rename photo types here.
     const PHOTO_TYPES = [
@@ -164,6 +188,7 @@
     let balances = {};
     let editingIndex = null;
     let filter = "All";
+    let remindDays = 7;
 
     try {
       items = JSON.parse(localStorage.getItem("items")) || [];
@@ -183,19 +208,29 @@
     try {
       const savedFilter = localStorage.getItem("filter");
       if (savedFilter === "Depop" || savedFilter === "Vinted") filter = savedFilter;
+      const savedRemind = Number(localStorage.getItem("remindDays"));
+      if (savedRemind >= 1) remindDays = savedRemind;
     } catch (e) {}
 
     // Convert older saved items to the newer format.
     items.forEach(function (item) {
       if (STATUSES.indexOf(item.status) === -1) item.status = "In progress";
       if (!item.photos) item.photos = {};
+      if (item.original === undefined) item.original = Number(item.price) || 0;
+      if (item.current === undefined) item.current = Number(item.price) || 0;
+      if (item.soldFor === undefined) item.soldFor = item.status === "Sold" ? (Number(item.price) || 0) : null;
+      if (!item.priceChanged) item.priceChanged = "";
     });
 
     const form = document.getElementById("item-form");
     const submitButton = document.getElementById("submit-button");
     const cancelButton = document.getElementById("cancel-edit");
     const siteInput = document.getElementById("site");
-    const priceInput = document.getElementById("price");
+    const statusInput = document.getElementById("status");
+    const originalInput = document.getElementById("original");
+    const currentInput = document.getElementById("current");
+    const soldForInput = document.getElementById("sold-for");
+    const soldForRow = document.getElementById("sold-for-row");
     const postedInput = document.getElementById("posted");
     const soldInput = document.getElementById("sold");
     const daysInput = document.getElementById("days");
@@ -204,6 +239,7 @@
     const bumpPercentRow = document.getElementById("bump-percent-row");
     const bumpNote = document.getElementById("bump-note");
     const filterInput = document.getElementById("filter");
+    const remindInput = document.getElementById("remind-days");
 
     function save() {
       try {
@@ -211,6 +247,7 @@
         localStorage.setItem("goals", JSON.stringify(goals));
         localStorage.setItem("balances", JSON.stringify(balances));
         localStorage.setItem("filter", filter);
+        localStorage.setItem("remindDays", String(remindDays));
       } catch (e) {}
     }
 
@@ -238,18 +275,32 @@
       return count;
     }
 
-    // ---- fees and profit ----
+    // ---- prices and profit ----
+    function salePrice(item) {
+      return item.soldFor !== null && item.soldFor !== undefined ? item.soldFor : item.current;
+    }
+
     function bumpCost(price, percent) {
       return Math.round(price * percent) / 100;
     }
 
     function feeTotal(item) {
-      const bump = item.bump ? bumpCost(item.price, item.bumpPercent || 0) : 0;
-      return (item.fees || 0) + bump;
+      return item.bump ? bumpCost(salePrice(item), item.bumpPercent || 0) : 0;
     }
 
     function profitOf(item) {
-      return item.price - feeTotal(item) - item.shipping - item.cost;
+      return salePrice(item) - feeTotal(item);
+    }
+
+    // The price used for the bump preview while you fill in the form.
+    function formPrice() {
+      if (statusInput.value === "Sold" && soldForInput.value !== "") return Number(soldForInput.value) || 0;
+      if (currentInput.value !== "") return Number(currentInput.value) || 0;
+      return Number(originalInput.value) || 0;
+    }
+
+    function updateSoldForUI() {
+      soldForRow.style.display = statusInput.value === "Sold" ? "block" : "none";
     }
 
     // ---- bump options that change with the platform ----
@@ -259,7 +310,7 @@
       if (resetPercent) bumpPercentInput.value = config.defaultPercent;
       bumpPercentRow.style.display = bumpInput.checked ? "block" : "none";
       if (bumpInput.checked) {
-        const cost = bumpCost(Number(priceInput.value) || 0, Number(bumpPercentInput.value) || 0);
+        const cost = bumpCost(formPrice(), Number(bumpPercentInput.value) || 0);
         bumpNote.textContent = "Bump cost: $" + cost.toFixed(2);
       } else {
         bumpNote.textContent = "";
@@ -267,11 +318,23 @@
     }
 
     siteInput.addEventListener("change", function () { updateBumpUI(true); });
+    statusInput.addEventListener("change", function () { updateSoldForUI(); updateBumpUI(false); });
     bumpInput.addEventListener("change", function () { updateBumpUI(false); });
-    priceInput.addEventListener("input", function () { updateBumpUI(false); });
+    originalInput.addEventListener("input", function () { updateBumpUI(false); });
+    currentInput.addEventListener("input", function () { updateBumpUI(false); });
+    soldForInput.addEventListener("input", function () { updateBumpUI(false); });
     bumpPercentInput.addEventListener("input", function () { updateBumpUI(false); });
 
     // ---- date helpers ----
+    function pad(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function todayText() {
+      const now = new Date();
+      return now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
+    }
+
     function parseDate(text) {
       const p = text.split("-");
       return Date.UTC(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
@@ -288,6 +351,19 @@
     function daysToSell(item) {
       if (!item.posted || !item.sold) return null;
       return dayDiff(item.posted, item.sold);
+    }
+
+    // Days a listed item has been at its current price (since the last price change, or since posting).
+    function daysAtPrice(item) {
+      if (item.status !== "Listed") return null;
+      const start = item.priceChanged || item.posted;
+      if (!start) return null;
+      return Math.max(0, dayDiff(start, todayText()));
+    }
+
+    function isDue(item) {
+      const d = daysAtPrice(item);
+      return d !== null && d >= remindDays;
     }
 
     // ---- keep the three date fields in sync ----
@@ -318,6 +394,7 @@
     function cancelEdit() {
       editingIndex = null;
       form.reset();
+      updateSoldForUI();
       updateBumpUI(true);
       submitButton.textContent = "Add item";
       cancelButton.style.display = "none";
@@ -328,7 +405,7 @@
       editingIndex = index;
       document.getElementById("name").value = item.name;
       siteInput.value = item.site;
-      document.getElementById("status").value = item.status;
+      statusInput.value = item.status;
       PHOTO_TYPES.forEach(function (type) {
         document.getElementById("photo-" + type.key).checked = !!(item.photos && item.photos[type.key]);
       });
@@ -336,12 +413,12 @@
       soldInput.value = item.sold || "";
       const d = daysToSell(item);
       daysInput.value = d === null ? "" : d;
-      priceInput.value = item.price;
+      originalInput.value = item.original;
+      currentInput.value = item.current;
+      soldForInput.value = item.soldFor === null || item.soldFor === undefined ? "" : item.soldFor;
       bumpInput.checked = !!item.bump;
       bumpPercentInput.value = item.bumpPercent || PLATFORMS[item.site].defaultPercent;
-      document.getElementById("fees").value = item.fees || 0;
-      document.getElementById("shipping").value = item.shipping;
-      document.getElementById("cost").value = item.cost;
+      updateSoldForUI();
       updateBumpUI(false);
       submitButton.textContent = "Save changes";
       cancelButton.style.display = "inline";
@@ -359,13 +436,38 @@
       });
     });
 
-    // ---- platform filter for the item list ----
+    // ---- platform filter and reminder setting ----
     filterInput.value = filter;
     filterInput.addEventListener("change", function () {
       filter = filterInput.value;
       save();
       render();
     });
+
+    remindInput.value = remindDays;
+    remindInput.addEventListener("input", function () {
+      const n = Number(remindInput.value);
+      if (n >= 1) {
+        remindDays = n;
+        save();
+        render();
+      }
+    });
+
+    function lowerPrice(item) {
+      const text = prompt("New price for " + item.name + " (now " + money(item.current) + "):");
+      if (text === null || text.trim() === "") return;
+      const value = Number(text);
+      if (isNaN(value) || value < 0) {
+        alert("Please enter a number, like 18 or 18.50.");
+        return;
+      }
+      if (value === item.current) return;
+      item.current = value;
+      item.priceChanged = todayText();
+      save();
+      render();
+    }
 
     function renderGoals(balance) {
       const goalList = document.getElementById("goal-list");
@@ -424,22 +526,26 @@
       list.innerHTML = "";
       let itemTotal = 0;
       let shown = 0;
+      const dueNames = [];
       const itemByPlatform = {};
       PLATFORM_NAMES.forEach(function (name) { itemByPlatform[name] = 0; });
 
       items.forEach(function (item, index) {
-        // Totals always count every item, whatever the filter says.
+        // Totals and reminders always count every item, whatever the filter says.
         const profit = item.status === "Sold" ? profitOf(item) : null;
         if (profit !== null) {
           itemTotal += profit;
           if (itemByPlatform[item.site] !== undefined) itemByPlatform[item.site] += profit;
         }
+        if (isDue(item)) dueNames.push(item.name);
 
         if (filter !== "All" && item.site !== filter) return;
         shown++;
 
         const row = document.createElement("tr");
+        row.className = STATUS_CLASS[item.status] || "";
 
+        // Photos
         const photoCell = document.createElement("td");
         const count = photoCount(item);
         if (count === PHOTO_TYPES.length) {
@@ -453,20 +559,55 @@
         }
         row.appendChild(photoCell);
 
-        const d = daysToSell(item);
-        const cells = [
-          item.name,
-          item.site,
-          item.status,
-          d === null ? "-" : d + (d === 1 ? " day" : " days"),
-          profit === null ? "-" : money(profit)
-        ];
-        cells.forEach(function (text) {
+        // Item, site, status
+        [item.name, item.site, item.status].forEach(function (text) {
           const td = document.createElement("td");
           td.textContent = text;
           row.appendChild(td);
         });
 
+        // Price
+        const priceCell = document.createElement("td");
+        const priceMain = document.createElement("div");
+        if (item.status === "Sold") {
+          priceMain.textContent = "Sold " + money(salePrice(item));
+          priceCell.appendChild(priceMain);
+          if (item.original !== salePrice(item)) {
+            const note = document.createElement("div");
+            note.className = "small";
+            note.textContent = "listed at " + money(item.original);
+            priceCell.appendChild(note);
+          }
+        } else {
+          priceMain.textContent = item.original !== item.current
+            ? money(item.original) + " \u2192 " + money(item.current)
+            : money(item.current);
+          priceCell.appendChild(priceMain);
+          const d = daysAtPrice(item);
+          if (d !== null) {
+            const note = document.createElement("div");
+            if (isDue(item)) {
+              note.className = "due";
+              note.textContent = "\u23F0 Reduce price (" + d + (d === 1 ? " day" : " days") + ")";
+            } else {
+              note.className = "small";
+              note.textContent = d + (d === 1 ? " day" : " days") + " at this price";
+            }
+            priceCell.appendChild(note);
+          }
+        }
+        row.appendChild(priceCell);
+
+        // Days to sell and profit
+        const d2 = daysToSell(item);
+        [d2 === null ? "-" : d2 + (d2 === 1 ? " day" : " days"),
+         profit === null ? "-" : money(profit)].forEach(function (text) {
+          const td = document.createElement("td");
+          td.textContent = text;
+          row.appendChild(td);
+        });
+
+        // Buttons
         const actionCell = document.createElement("td");
 
         const editButton = document.createElement("button");
@@ -475,6 +616,15 @@
           startEdit(index);
         };
         actionCell.appendChild(editButton);
+
+        if (item.status === "Listed") {
+          const lowerButton = document.createElement("button");
+          lowerButton.textContent = "Lower price";
+          lowerButton.onclick = function () {
+            lowerPrice(item);
+          };
+          actionCell.appendChild(lowerButton);
+        }
 
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
@@ -494,6 +644,15 @@
 
       document.getElementById("list-count").textContent =
         "Showing " + shown + " of " + items.length + " items" + (filter === "All" ? "" : " (" + filter + ")");
+
+      const banner = document.getElementById("reduce-banner");
+      if (dueNames.length > 0) {
+        banner.style.display = "block";
+        banner.textContent = "\u23F0 Time to lower the price on: " + dueNames.join(", ");
+      } else {
+        banner.style.display = "none";
+        banner.textContent = "";
+      }
 
       let startTotal = 0;
       PLATFORM_NAMES.forEach(function (name) {
@@ -532,19 +691,30 @@
         photos[type.key] = document.getElementById("photo-" + type.key).checked;
       });
 
+      const original = Number(originalInput.value) || 0;
+      const current = currentInput.value === "" ? original : Number(currentInput.value);
+      const status = statusInput.value;
+      const soldFor = status === "Sold" && soldForInput.value !== "" ? Number(soldForInput.value) : null;
+
+      let priceChanged = "";
+      if (editingIndex !== null) {
+        const old = items[editingIndex];
+        priceChanged = current !== old.current ? todayText() : old.priceChanged;
+      }
+
       const item = {
         name: document.getElementById("name").value,
         site: siteInput.value,
-        status: document.getElementById("status").value,
+        status: status,
         photos: photos,
         posted: postedInput.value,
         sold: soldInput.value,
-        price: Number(priceInput.value),
+        original: original,
+        current: current,
+        soldFor: soldFor,
+        priceChanged: priceChanged,
         bump: bumpInput.checked,
-        bumpPercent: Number(bumpPercentInput.value) || 0,
-        fees: Number(document.getElementById("fees").value),
-        shipping: Number(document.getElementById("shipping").value),
-        cost: Number(document.getElementById("cost").value)
+        bumpPercent: Number(bumpPercentInput.value) || 0
       };
       if (editingIndex === null) {
         items.push(item);
@@ -579,7 +749,7 @@
     document.getElementById("export-button").addEventListener("click", function () {
       const header = ["Item", "Site", "Status"];
       PHOTO_TYPES.forEach(function (type) { header.push("Photo: " + type.label); });
-      header.push("Date posted", "Date sold", "Days to sell", "Sale price", "Other fees", "Bumped", "Bump %", "Total fees", "Shipping", "Cost", "Profit");
+      header.push("Date posted", "Date sold", "Days to sell", "Original price", "Current price", "Last price change", "Sold for", "Bumped", "Bump %", "Bump cost", "Profit");
       const rows = [header];
 
       items.forEach(function (item) {
@@ -590,10 +760,11 @@
         });
         row.push(
           item.posted || "", item.sold || "", d === null ? "" : d,
-          item.price.toFixed(2), (item.fees || 0).toFixed(2),
+          item.original.toFixed(2), item.current.toFixed(2),
+          item.priceChanged || "",
+          item.status === "Sold" ? salePrice(item).toFixed(2) : "",
           item.bump ? "Yes" : "No", item.bump ? (item.bumpPercent || 0) : "",
           feeTotal(item).toFixed(2),
-          item.shipping.toFixed(2), item.cost.toFixed(2),
           item.status === "Sold" ? profitOf(item).toFixed(2) : ""
         );
         rows.push(row);
@@ -607,6 +778,7 @@
       link.click();
     });
 
+    updateSoldForUI();
     updateBumpUI(true);
     render();
   </script>
