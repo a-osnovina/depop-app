@@ -654,11 +654,30 @@
       return canvas.toDataURL("image/jpeg", 0.75);
     }
 
-    // In a Vinted screenshot the photo sits above the title, so cut everything from the title down.
-    function listingPhotoBox(img, lines, name) {
-      let bottom = Math.round(img.naturalHeight * 0.6);
-      if (lines && name) {
-        const wanted = name.toLowerCase();
+    // Works out where the listing photo is inside the screenshot.
+    // Vinted: the photo ends above the title. Depop: the photo is a square that ends above the brand line.
+    function listingPhotoBox(img, lines, found) {
+      const W = img.naturalWidth;
+      const H = img.naturalHeight;
+
+      if (found.layout === "depop") {
+        let bottom = Math.round(H * 0.6);
+        if (lines && found.titleLine) {
+          for (let i = 0; i < lines.length; i++) {
+            if (lines[i].text.indexOf(found.titleLine) !== -1 && lines[i].bbox) {
+              bottom = lines[i].bbox.y0 - Math.round(W * 0.05);
+              break;
+            }
+          }
+        }
+        bottom = Math.min(bottom, H);
+        const top = Math.max(0, bottom - W);
+        return { x: 0, y: top, w: W, h: Math.max(60, bottom - top) };
+      }
+
+      let bottom = Math.round(H * 0.6);
+      if (lines && found.name) {
+        const wanted = found.name.toLowerCase();
         for (let i = 0; i < lines.length; i++) {
           if (lines[i].text.toLowerCase().indexOf(wanted) !== -1 && lines[i].bbox) {
             bottom = Math.max(60, lines[i].bbox.y0 - 44);
@@ -666,7 +685,7 @@
           }
         }
       }
-      return { x: 0, y: 0, w: img.naturalWidth, h: Math.min(bottom, img.naturalHeight) };
+      return { x: 0, y: 0, w: W, h: Math.min(bottom, H) };
     }
 
     document.getElementById("pic-choose").addEventListener("click", function () {
@@ -756,50 +775,133 @@
 
     // Turns the text read from a screenshot into { name, price, site }. Nothing is saved here;
     // the results only fill in the form so you can check them first.
-    function parseListing(text) {
-      const lines = String(text).split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+    function parseListing(text, extraText) {
+      function toLines(t) {
+        return String(t || "").split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+      }
+      const lines = toLines(text);
+      const extraLines = toLines(extraText);
       const moneyPattern = /\$\s*(\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)/;
       // Lines that show what the BUYER pays (price plus protection fee) are skipped.
       const buyerPattern = /incl|buyer|subtotal|protection|shipping|postage/i;
 
-      let price = null;
-      let priceIndex = -1;
-      for (let i = 0; i < lines.length; i++) {
-        if (buyerPattern.test(lines[i])) continue;
-        const m = lines[i].match(moneyPattern);
-        if (m) {
-          price = Number(m[1].replace(/,/g, ""));
-          priceIndex = i;
-          break;
+      // Finds the first price in a list of lines.
+      function findPrice(list) {
+        for (let i = 0; i < list.length; i++) {
+          if (buyerPattern.test(list[i])) continue;
+          const m = list[i].match(moneyPattern);
+          if (m) return { price: Number(m[1].replace(/,/g, "")), index: i };
         }
+        // Sometimes the $ sign is misread as an S, on a line that is just the price.
+        for (let i = 0; i < list.length; i++) {
+          if (buyerPattern.test(list[i])) continue;
+          const m = list[i].match(/^[S\u00A7]\s?(\d+(?:[.,]\d{1,2})?)$/);
+          if (m) return { price: Number(m[1].replace(",", ".")), index: i };
+        }
+        return { price: null, index: -1 };
       }
-      // Sometimes the $ sign is misread as an S, on a line that is just the price.
-      if (price === null) {
+
+      // Depop shows the brand and category in capitals (JUICY COUTURE . HOODIES). Turn that into a name.
+      function cleanDepopTitle(line) {
+        let words = line.split(/\s+/).filter(Boolean);
+        const capitals = words.filter(function (w) { return /^[A-Z0-9&'.\-]+$/.test(w) && /[A-Z]/.test(w); }).length;
+        words = words.filter(function (w) {
+          if (!/[A-Za-z0-9]/.test(w)) return false;                        // the dot between brand and category
+          if (capitals >= 2 && /^[a-z]{1,2}$/.test(w)) return false;       // that dot misread as a small letter
+          return true;
+        });
+        return words.map(function (w) {
+          return w.indexOf("&") !== -1 ? w : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+        }).join(" ");
+      }
+
+      const isDepop = /depop/i.test(text);
+      let price = null;
+      let name = "";
+      let titleLine = "";
+
+      if (isDepop) {
+        // The price sits in the bar at the bottom (next to Edit and Manage), read in a second pass.
+        price = findPrice(extraLines).price;
+        // The name line is the one just above "Women . Size S . Like new".
+        let detail = -1;
         for (let i = 0; i < lines.length; i++) {
-          if (buyerPattern.test(lines[i])) continue;
-          const m = lines[i].match(/^[S§]\s?(\d+(?:[.,]\d{1,2})?)$/);
-          if (m) {
-            price = Number(m[1].replace(",", "."));
-            priceIndex = i;
+          if (/\bsize\b/i.test(lines[i]) && (/\b(women|womens|men|mens|unisex|kids|girls|boys)\b/i.test(lines[i]) || /\b(new|used|good|fair)\b/i.test(lines[i]))) {
+            detail = i;
+            break;
+          }
+        }
+        for (let i = detail - 1; i >= 0; i--) {
+          if (/[A-Za-z]{3,}/.test(lines[i])) {
+            titleLine = lines[i];
+            name = cleanDepopTitle(lines[i]);
+            break;
+          }
+        }
+      } else {
+        const main = findPrice(lines);
+        price = main.price;
+        if (price === null) price = findPrice(extraLines).price;
+        // The title is the closest readable line above the price.
+        for (let i = main.index - 1; i >= 0; i--) {
+          if (/[A-Za-z]{3,}/.test(lines[i])) {
+            name = lines[i].replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9)!?.]+$/g, "");
             break;
           }
         }
       }
 
-      // The title is the closest readable line above the price.
-      let name = "";
-      for (let i = priceIndex - 1; i >= 0; i--) {
-        if (/[A-Za-z]{3,}/.test(lines[i])) {
-          name = lines[i].replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9)!?.]+$/g, "");
-          break;
-        }
-      }
-
       let site = "";
-      if (/depop/i.test(text)) site = "Depop";
+      if (isDepop) site = "Depop";
       else if (/vinted|buyer protection|subtotal for buyer/i.test(text)) site = "Vinted";
 
-      return { name: name, price: price, site: site };
+      return { name: name, price: price, site: site, layout: isDepop ? "depop" : "", titleLine: titleLine };
+    }
+
+    // Depop puts the price in a grey bar at the bottom that the reader skips on a normal pass.
+    // This looks at the bottom of the screenshot again, enlarged, in "sparse text" mode.
+    function readBottomOfScreenshot(Tesseract, file) {
+      showImportNote("Looking for the price...", false);
+      return loadImage(file)
+        .then(function (img) {
+          const top = Math.round(img.naturalHeight * 0.65);
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth * 2;
+          canvas.height = (img.naturalHeight - top) * 2;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, top, img.naturalWidth, img.naturalHeight - top, 0, 0, canvas.width, canvas.height);
+
+          // Grey and stretch the contrast so the small price stands out.
+          const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const px = data.data;
+          let low = 255;
+          let high = 0;
+          for (let i = 0; i < px.length; i += 4) {
+            const g = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+            px[i] = g;
+            if (g < low) low = g;
+            if (g > high) high = g;
+          }
+          const range = high - low || 1;
+          for (let i = 0; i < px.length; i += 4) {
+            const g = (px[i] - low) * 255 / range;
+            px[i] = px[i + 1] = px[i + 2] = g;
+          }
+          ctx.putImageData(data, 0, 0);
+
+          return Tesseract.createWorker("eng").then(function (worker) {
+            return worker.setParameters({ tessedit_pageseg_mode: "11" })
+              .then(function () { return worker.recognize(canvas); })
+              .then(function (result) {
+                return worker.terminate().then(function () { return result.data.text; });
+              })
+              .catch(function () {
+                worker.terminate();
+                return "";
+              });
+          });
+        })
+        .catch(function () { return ""; });
     }
 
     let ocrLoading = null;
@@ -845,6 +947,7 @@
       importRaw.style.display = "none";
       showImportNote("Loading the screenshot reader...", false);
 
+      let firstResult = null;
       loadOcr()
         .then(function (Tesseract) {
           showImportNote("Reading the screenshot...", false);
@@ -854,10 +957,16 @@
                 showImportNote("Reading the screenshot... " + Math.round(m.progress * 100) + "%", false);
               }
             }
+          }).then(function (result) {
+            firstResult = result;
+            const first = parseListing(result.data.text);
+            // Depop prices (and any screenshot where no price was found) need a second look at the bottom.
+            if (first.layout !== "depop" && first.price !== null) return "";
+            return readBottomOfScreenshot(Tesseract, file);
           });
         })
-        .then(function (result) {
-          return fillFormFromListing(result.data.text, file, result.data.lines);
+        .then(function (extraText) {
+          return fillFormFromListing(firstResult.data.text, file, firstResult.data.lines, extraText);
         })
         .catch(function (err) {
           showImportNote("Sorry, the import didn't work (" + err.message + "). Check your internet connection and try again, or add the item by hand.", true);
@@ -868,8 +977,8 @@
         });
     });
 
-    function fillFormFromListing(text, file, lines) {
-      const found = parseListing(text);
+    function fillFormFromListing(text, file, lines, extraText) {
+      const found = parseListing(text, extraText);
 
       closeForm();
       document.getElementById("name").value = found.name;
@@ -907,16 +1016,18 @@
       });
       if (duplicate) message += " Heads up: you already have an item with this name on " + siteInput.value + ".";
       if (!found.site) message += " I couldn't tell which site this is from, so check the Site box.";
+      if (found.layout === "depop" && found.name) message += " Depop listings have no title, so I used the brand and category as the name. Rename it if you like.";
 
       showImportNote(message, missing.length > 0 || duplicate);
-      importRawText.textContent = text.trim() || "(nothing was read)";
+      importRawText.textContent = (text.trim() || "(nothing was read)") +
+        (extraText && extraText.trim() ? "\n\n--- bottom of the screenshot ---\n" + extraText.trim() : "");
       importRaw.style.display = "block";
 
       // Crop the listing photo out of the screenshot and keep it for the list.
       if (!file) return Promise.resolve();
       return loadImage(file)
         .then(function (img) {
-          setFormPhoto(makeThumb(img, listingPhotoBox(img, lines, found.name)));
+          setFormPhoto(makeThumb(img, listingPhotoBox(img, lines, found)));
         })
         .catch(function () {
           showImportNote(importNote.textContent + " I couldn't keep a picture from it, but you can press Choose picture.", true);
