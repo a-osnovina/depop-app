@@ -22,6 +22,7 @@
 
     /* Boxes: 16px text stops iPhones from zooming in when you tap one */
     input, select { font: inherit; font-size: 16px; min-height: 44px; padding: 8px 10px; border: 1px solid #b8b8b8; border-radius: 8px; background: #ffffff; color: #222; touch-action: manipulation; }
+    textarea { font: inherit; font-size: 16px; padding: 8px 10px; border: 1px solid #b8b8b8; border-radius: 8px; background: #ffffff; color: #222; width: 100%; display: block; margin-top: 4px; font-weight: 400; }
     .field { display: block; margin: 14px 0 0; font-size: 14px; font-weight: 600; }
     .field input, .field select { display: block; width: 100%; margin-top: 4px; font-weight: 400; }
     .check { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 4px 0 0; font-size: 16px; font-weight: 400; }
@@ -98,6 +99,7 @@
     #bump-amount-row { display: none; margin-left: 12px; }
     #sold-for-row { display: none; }
     #bump-note { margin-left: 12px; color: #444; }
+    #item-number-text { font-size: 22px; font-weight: 800; color: #0b5cad; margin-top: 2px; }
     fieldset { margin: 16px 0 0; border: 1px solid #ddd; border-radius: 10px; padding: 4px 12px 10px; }
     legend { font-size: 14px; font-weight: 600; padding: 0 6px; }
     #photo-boxes { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; }
@@ -108,7 +110,8 @@
     .form-actions button { flex: 1; }
     .form-actions #submit-button { flex: 2; }
 
-    /* Filters */
+    /* Search and filters */
+    #search { display: block; width: 100%; margin-top: 4px; }
     .list-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
     .list-tools .field { margin: 0; }
     .remind-row { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: 14px; }
@@ -125,6 +128,7 @@
     .thumb { flex: none; display: block; width: 84px; height: 84px; object-fit: cover; object-position: top; border-radius: 10px; background: #d9d9d9; }
     .thumb.empty { display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666; background: rgba(0, 0, 0, 0.08); }
     .card-main { flex: 1; min-width: 0; }
+    .card-num { font-size: 20px; font-weight: 800; color: #0b5cad; line-height: 1.1; }
     .card-title { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
     .card-meta { font-size: 13px; color: #444; margin-top: 2px; }
     .card-price { font-size: 16px; margin-top: 6px; }
@@ -138,6 +142,22 @@
     .sold-mini .sold-profit { flex: none; font-weight: 700; color: #1a7f37; }
     .card-actions { display: flex; gap: 8px; margin-top: 12px; }
     .card-actions button { flex: 1; padding: 0 4px; font-size: 15px; white-space: nowrap; }
+
+    /* Listing helper */
+    #helper-panel { display: none; border: 1px solid #ddd; border-radius: 10px; padding: 10px 12px 12px; margin-top: 10px; }
+    #helper-panel .toolbar { margin-top: 8px; }
+    #helper-paste-box { margin-top: 8px; }
+    #helper-paste-box summary { min-height: 40px; display: flex; align-items: center; color: #0b5cad; font-weight: 600; font-size: 14px; }
+    #helper-paste-box button { margin-top: 8px; width: 100%; }
+    #helper-note { display: none; background: #e8f3ff; color: #0b3d75; border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
+    #helper-note.warn { background: #fff4d6; color: #6b4a00; }
+    .helper-card .field { margin-top: 12px; }
+    .helper-row { display: flex; gap: 8px; margin-top: 10px; }
+    .helper-row button, .link-btn { flex: 1; }
+    .link-btn { display: flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid #b8b8b8; border-radius: 10px; background: #ffffff; color: #0b5cad; font-weight: 600; font-size: 15px; text-decoration: none; text-align: center; }
+    .tag-count { font-weight: 400; color: #555; }
+    .tag-count.bad { color: #b42318; font-weight: 600; }
+    .empty-note { text-align: center; color: #555; padding: 20px 8px; }
 
     /* Lower price pop-up */
     #price-modal { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 50; background: rgba(0, 0, 0, 0.45); display: flex; align-items: flex-end; justify-content: center; }
@@ -277,6 +297,7 @@
 
   <!-- ITEM LIST -->
   <h2>Item list</h2>
+  <input id="search" type="search" placeholder="Search by number, name or storage spot" autocomplete="off">
   <details class="filters-box" id="filters-box">
     <summary id="filters-summary">Filters</summary>
     <div class="filters-panel">
@@ -297,6 +318,13 @@
         <option>Sold</option>
       </select>
     </label>
+    <label class="field">Bagged
+      <select id="bagged-filter">
+        <option>All</option>
+        <option>Not bagged</option>
+        <option>Bagged</option>
+      </select>
+    </label>
     <label class="remind-row">Remind me to lower prices after
       <input id="remind-days" type="number" inputmode="numeric" min="1" step="1" value="7"> days
     </label>
@@ -309,6 +337,24 @@
     <button type="button" id="import-button">Import from screenshot</button>
     <input type="file" id="import-file" accept="image/*" hidden>
   </div>
+  <div class="toolbar">
+    <button type="button" id="helper-toggle">Listing helper: Off</button>
+  </div>
+
+  <div id="helper-panel">
+    <div class="small">Shows unsold items with search links, a description and 5 hashtags. Platform, price and profit are hidden.</div>
+    <label class="check"><input type="checkbox" id="helper-show-all"> Also show items that already have a description</label>
+    <div class="toolbar">
+      <button type="button" id="helper-copy-all" class="primary">Copy AI prompt for all shown</button>
+    </div>
+    <details id="helper-paste-box">
+      <summary>Paste the AI's replies</summary>
+      <textarea id="helper-paste" rows="6" placeholder="Paste the AI's reply here. Items that already have a description are skipped."></textarea>
+      <button type="button" id="helper-fill" class="primary">Fill in descriptions</button>
+    </details>
+    <div id="helper-note"></div>
+  </div>
+
   <div id="import-note"></div>
   <details id="import-raw">
     <summary>What the app read from the screenshot</summary>
@@ -316,6 +362,9 @@
   </details>
 
   <form id="item-form">
+    <div class="field">Item number
+      <div id="item-number-text"></div>
+    </div>
     <label class="field">Item name <input id="name" required></label>
     <label class="field">Site
       <select id="site">
@@ -332,6 +381,9 @@
       </select>
     </label>
 
+    <label class="field">Storage spot (optional) <input id="location" placeholder="Bin A, closet shelf 2..."></label>
+    <label class="check" style="margin-top:10px"><input type="checkbox" id="bagged"> Bagged and numbered</label>
+
     <div class="field">
       Picture shown in your list
       <div><img id="pic-preview" alt="Item picture"></div>
@@ -347,6 +399,10 @@
       <legend>Tick the photos you have taken</legend>
       <div id="photo-boxes"></div>
     </fieldset>
+
+    <label class="field">Description (one simple sentence) <textarea id="description" rows="2"></textarea></label>
+    <label class="field">Hashtags (5) <input id="hashtags" placeholder="#vintage #y2k #hoodie #zipup #streetwear"></label>
+    <label class="field">Price research note <input id="price-note" placeholder="eBay sold $18-$25, 6 sales"></label>
 
     <label class="field">Date posted <input id="posted" type="date"></label>
     <label class="field">Date sold <input id="sold" type="date"></label>
@@ -396,6 +452,10 @@
 
     const STATUSES = ["In progress", "Listed", "Sold"];
     const STATUS_CLASS = { "In progress": "row-progress", "Listed": "row-listed", "Sold": "row-sold" };
+    const BAGGED_OPTIONS = ["All", "Not bagged", "Bagged"];
+
+    // How many hashtags the AI is asked for.
+    const HASHTAG_COUNT = 5;
 
     // Add or rename photo types here.
     const PHOTO_TYPES = [
@@ -415,8 +475,14 @@
     let editingIndex = null;
     let filter = "All";
     let statusFilter = "All";
+    let baggedFilter = "All";
     let remindDays = 7;
     let formPhoto = "";
+    let nextItemId = 1;
+    let searchText = "";
+    let helperView = false;
+    let helperShowAll = false;
+    let lastHelperItems = [];
 
     try {
       items = JSON.parse(localStorage.getItem("items")) || [];
@@ -438,8 +504,14 @@
       if (PLATFORM_NAMES.indexOf(savedFilter) !== -1) filter = savedFilter;
       const savedStatusFilter = localStorage.getItem("statusFilter");
       if (STATUSES.indexOf(savedStatusFilter) !== -1) statusFilter = savedStatusFilter;
+      const savedBagged = localStorage.getItem("baggedFilter");
+      if (BAGGED_OPTIONS.indexOf(savedBagged) !== -1) baggedFilter = savedBagged;
       const savedRemind = Number(localStorage.getItem("remindDays"));
       if (savedRemind >= 1) remindDays = savedRemind;
+      const savedNext = Number(localStorage.getItem("nextItemId"));
+      if (savedNext >= 1) nextItemId = Math.floor(savedNext);
+      helperView = localStorage.getItem("helperView") === "1";
+      helperShowAll = localStorage.getItem("helperShowAll") === "1";
     } catch (e) {}
 
     // Convert older saved items to the newer format.
@@ -464,8 +536,32 @@
           ? Math.round(salePrice(item) * (item.bumpPercent || 0)) / 100
           : 0;
       }
+      // Newer fields: item number, storage spot, bagged, description, hashtags, price note, search words.
+      item.id = Number(item.id) > 0 ? Math.floor(Number(item.id)) : 0;
+      item.location = typeof item.location === "string" ? item.location : "";
+      item.bagged = !!item.bagged;
+      item.description = typeof item.description === "string" ? item.description : "";
+      item.hashtags = typeof item.hashtags === "string" ? item.hashtags : "";
+      item.priceNote = typeof item.priceNote === "string" ? item.priceNote : "";
+      item.searchWords = typeof item.searchWords === "string" ? item.searchWords : "";
     }
     items.forEach(migrateItem);
+
+    // Gives every item its own number. Numbers are never reused, even after you delete an item,
+    // so two bags can never end up with the same number.
+    function assignIds() {
+      let max = nextItemId - 1;
+      items.forEach(function (item) {
+        if (item.id > max) max = item.id;
+      });
+      nextItemId = max + 1;
+      const seen = {};
+      items.forEach(function (item) {
+        if (!item.id || seen[item.id]) item.id = nextItemId++;
+        seen[item.id] = true;
+      });
+    }
+    assignIds();
 
     const form = document.getElementById("item-form");
     const addItemButton = document.getElementById("add-item-button");
@@ -490,7 +586,19 @@
     const bumpNote = document.getElementById("bump-note");
     const filterInput = document.getElementById("filter");
     const statusFilterInput = document.getElementById("status-filter");
+    const baggedFilterInput = document.getElementById("bagged-filter");
     const remindInput = document.getElementById("remind-days");
+    const searchInput = document.getElementById("search");
+    const locationInput = document.getElementById("location");
+    const baggedInput = document.getElementById("bagged");
+    const descriptionInput = document.getElementById("description");
+    const hashtagsInput = document.getElementById("hashtags");
+    const priceNoteInput = document.getElementById("price-note");
+    const itemNumberText = document.getElementById("item-number-text");
+    const helperToggle = document.getElementById("helper-toggle");
+    const helperPanel = document.getElementById("helper-panel");
+    const helperShowAllInput = document.getElementById("helper-show-all");
+    const helperNote = document.getElementById("helper-note");
     const goalForm = document.getElementById("goal-form");
     const addGoalButton = document.getElementById("add-goal-button");
     const balancesBox = document.getElementById("balances");
@@ -503,11 +611,17 @@
         localStorage.setItem("balances", JSON.stringify(balances));
         localStorage.setItem("filter", filter);
         localStorage.setItem("statusFilter", statusFilter);
+        localStorage.setItem("baggedFilter", baggedFilter);
         localStorage.setItem("remindDays", String(remindDays));
+        localStorage.setItem("nextItemId", String(nextItemId));
+        localStorage.setItem("helperView", helperView ? "1" : "0");
+        localStorage.setItem("helperShowAll", helperShowAll ? "1" : "0");
       } catch (e) {
         alert("Your browser is full, so the latest change could not be saved. Export a CSV and remove some pictures or old items.");
       }
     }
+    // Saves the item numbers for older items right away.
+    save();
 
     function money(n) {
       return (n < 0 ? "-" : "") + "$" + Math.abs(n).toFixed(2);
@@ -754,6 +868,10 @@
     });
 
     // ---- show and hide the item form ----
+    function setNumberText(id) {
+      itemNumberText.textContent = id ? "#" + id : "Assigned when you save (next is #" + nextItemId + ")";
+    }
+
     function showForm() {
       form.style.display = "block";
       addItemButton.textContent = "Close form";
@@ -766,6 +884,7 @@
       updatePhotoUI();
       updateSoldForUI();
       updateBumpUI(true);
+      setNumberText(null);
       submitButton.textContent = "Add item";
       form.style.display = "none";
       addItemButton.textContent = "+ Add item";
@@ -777,6 +896,7 @@
         closeForm();
       } else {
         editingIndex = null;
+        setNumberText(null);
         showForm();
         document.getElementById("name").focus();
       }
@@ -791,9 +911,15 @@
       const item = items[index];
       hideImportNote();
       editingIndex = index;
+      setNumberText(item.id);
       document.getElementById("name").value = item.name;
       siteInput.value = item.site;
       statusInput.value = item.status;
+      locationInput.value = item.location;
+      baggedInput.checked = !!item.bagged;
+      descriptionInput.value = item.description;
+      hashtagsInput.value = item.hashtags;
+      priceNoteInput.value = item.priceNote;
       PHOTO_TYPES.forEach(function (type) {
         document.getElementById("photo-" + type.key).checked = !!(item.photos && item.photos[type.key]);
       });
@@ -1184,7 +1310,20 @@
       }
     });
 
-    // ---- filters and reminder setting ----
+    // ---- search, filters and reminder setting ----
+    searchInput.addEventListener("input", function () {
+      searchText = searchInput.value.trim().toLowerCase();
+      render();
+    });
+
+    // Matches the item number (with or without #), part of the name, or the storage spot.
+    function matchesSearch(item) {
+      const q = searchText;
+      const num = q.replace(/^#/, "");
+      if (/^\d+$/.test(num) && String(item.id) === num) return true;
+      return item.name.toLowerCase().indexOf(q) !== -1 || item.location.toLowerCase().indexOf(q) !== -1;
+    }
+
     filterInput.value = filter;
     filterInput.addEventListener("change", function () {
       filter = filterInput.value;
@@ -1195,6 +1334,13 @@
     statusFilterInput.value = statusFilter;
     statusFilterInput.addEventListener("change", function () {
       statusFilter = statusFilterInput.value;
+      save();
+      render();
+    });
+
+    baggedFilterInput.value = baggedFilter;
+    baggedFilterInput.addEventListener("change", function () {
+      baggedFilter = baggedFilterInput.value;
       save();
       render();
     });
@@ -1499,11 +1645,309 @@
       renderOverall(balance, activeTotal, active.length);
     }
 
+    // ---- listing helper: search links, description, hashtags, price note, AI prompt ----
+
+    // Copies text. Uses the clipboard when the browser allows it, otherwise a hidden box.
+    function copyText(text) {
+      function fallback() {
+        return new Promise(function (resolve, reject) {
+          const box = document.createElement("textarea");
+          box.value = text;
+          box.style.position = "fixed";
+          box.style.opacity = "0";
+          document.body.appendChild(box);
+          box.focus();
+          box.select();
+          let ok = false;
+          try { ok = document.execCommand("copy"); } catch (e) {}
+          document.body.removeChild(box);
+          if (ok) resolve(); else reject(new Error("copy failed"));
+        });
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).catch(fallback);
+      }
+      return fallback();
+    }
+
+    // Briefly changes a button's words, then puts them back.
+    function flash(button, message) {
+      if (!button.dataset.label) button.dataset.label = button.textContent;
+      button.textContent = message;
+      setTimeout(function () { button.textContent = button.dataset.label; }, 1500);
+    }
+
+    function copyButton(label, getText) {
+      const button = el("button", "", label);
+      button.type = "button";
+      button.dataset.label = label;
+      button.onclick = function () {
+        const text = getText();
+        if (!text.trim()) {
+          flash(button, "Nothing to copy");
+          return;
+        }
+        copyText(text)
+          .then(function () { flash(button, "Copied \u2713"); })
+          .catch(function () { flash(button, "Couldn't copy"); });
+      };
+      return button;
+    }
+
+    // Turns "vintage, #y2k hoodie" into "#vintage #y2k #hoodie". A limit keeps only the first few.
+    function cleanHashtags(text, limit) {
+      const words = String(text || "").split(/[\s,]+/).map(function (w) {
+        return w.replace(/^#+/, "").replace(/[^A-Za-z0-9_]/g, "");
+      }).filter(Boolean);
+      const out = [];
+      words.forEach(function (w) {
+        const tag = "#" + w;
+        if (out.indexOf(tag) === -1 && (!limit || out.length < limit)) out.push(tag);
+      });
+      return out.join(" ");
+    }
+
+    function hashtagTotal(text) {
+      return cleanHashtags(text).split(" ").filter(Boolean).length;
+    }
+
+    function searchWordsFor(item) {
+      return item.searchWords.trim() || item.name;
+    }
+
+    function googleUrl(item) {
+      return "https://www.google.com/search?q=" + encodeURIComponent(searchWordsFor(item));
+    }
+
+    // eBay's search page, narrowed to sold listings.
+    function ebayUrl(item) {
+      return "https://www.ebay.com/sch/i/.html?_nkw=" + encodeURIComponent(searchWordsFor(item)) + "&LH_Sold=1&LH_Complete=1";
+    }
+
+    // The message you paste into Claude (or any AI) along with the item photos.
+    function buildPrompt(list) {
+      let text = "I'm listing second-hand clothes. A photo of each item is attached. " +
+        "For each item below, look at its photo and work out the style, then reply in EXACTLY this format and nothing else:\n\n" +
+        "ITEM <number>\n" +
+        "DESCRIPTION: <one very simple sentence about the item, beyond its name>\n" +
+        "HASHTAGS: <exactly " + HASHTAG_COUNT + " hashtags>\n\n" +
+        "Items:\n";
+      list.forEach(function (item) {
+        text += "ITEM " + item.id + ": " + item.name;
+        if (item.searchWords.trim() && item.searchWords.trim() !== item.name) text += " (search words: " + item.searchWords.trim() + ")";
+        text += "\n";
+      });
+      return text;
+    }
+
+    // Reads the AI's reply: blocks that start with "ITEM <number>".
+    function parseAiReply(text) {
+      const clean = String(text || "").replace(/\*+/g, "");
+      const parts = clean.split(/ITEM\s*#?\s*(\d+)/i);
+      const results = [];
+      for (let i = 1; i < parts.length; i += 2) {
+        const body = parts[i + 1] || "";
+        const d = body.match(/DESCRIPTION\s*:\s*([\s\S]*?)(?=\n\s*HASHTAGS\s*:|$)/i);
+        const h = body.match(/HASHTAGS\s*:\s*([^\n]*)/i);
+        results.push({
+          id: Number(parts[i]),
+          description: d ? d[1].replace(/\s+/g, " ").trim() : "",
+          hashtags: h ? h[1].trim() : ""
+        });
+      }
+      return results;
+    }
+
+    function showHelperNote(text, isWarning) {
+      helperNote.textContent = text;
+      helperNote.className = isWarning ? "warn" : "";
+      helperNote.style.display = "block";
+    }
+
+    function buildHelperCard(item) {
+      const card = el("div", "card helper-card " + (STATUS_CLASS[item.status] || ""));
+      const top = el("div", "card-top");
+
+      if (item.picture) {
+        const pic = el("img", "thumb");
+        pic.src = item.picture;
+        pic.alt = item.name;
+        top.appendChild(pic);
+      } else {
+        top.appendChild(el("div", "thumb empty", "No picture"));
+      }
+
+      const main = el("div", "card-main");
+      main.appendChild(el("div", "card-num", "#" + item.id));
+      main.appendChild(el("div", "card-title", item.name));
+      if (item.location) main.appendChild(el("div", "card-meta", item.location));
+      top.appendChild(main);
+      card.appendChild(top);
+
+      // Search words and the two search links
+      const searchLabel = el("label", "field", "Search words");
+      const searchBox = document.createElement("input");
+      searchBox.value = searchWordsFor(item);
+      searchBox.addEventListener("input", function () {
+        item.searchWords = searchBox.value;
+        save();
+      });
+      searchLabel.appendChild(searchBox);
+      card.appendChild(searchLabel);
+
+      const links = el("div", "helper-row");
+      const google = el("a", "link-btn", "Google");
+      google.href = googleUrl(item);
+      google.target = "_blank";
+      google.rel = "noopener";
+      google.addEventListener("click", function () { google.href = googleUrl(item); });
+      const ebay = el("a", "link-btn", "eBay sold");
+      ebay.href = ebayUrl(item);
+      ebay.target = "_blank";
+      ebay.rel = "noopener";
+      ebay.addEventListener("click", function () { ebay.href = ebayUrl(item); });
+      links.appendChild(google);
+      links.appendChild(ebay);
+      card.appendChild(links);
+
+      // Description
+      const descLabel = el("label", "field", "Description (one simple sentence)");
+      const descBox = document.createElement("textarea");
+      descBox.rows = 2;
+      descBox.value = item.description;
+      descBox.addEventListener("input", function () {
+        item.description = descBox.value;
+        save();
+      });
+      descLabel.appendChild(descBox);
+      card.appendChild(descLabel);
+
+      // Hashtags
+      const tagLabel = el("label", "field", "Hashtags ");
+      const tagCount = el("span", "tag-count");
+      tagLabel.appendChild(tagCount);
+      const tagBox = document.createElement("input");
+      tagBox.value = item.hashtags;
+      tagBox.placeholder = "#one #two #three #four #five";
+      function updateTagCount() {
+        const n = hashtagTotal(tagBox.value);
+        tagCount.textContent = "(" + n + " of " + HASHTAG_COUNT + ")";
+        tagCount.className = "tag-count" + (n !== HASHTAG_COUNT && n > 0 ? " bad" : "");
+      }
+      updateTagCount();
+      tagBox.addEventListener("input", function () {
+        item.hashtags = tagBox.value;
+        updateTagCount();
+        save();
+      });
+      // Tidy the tags (add # signs, remove extra spaces) when you leave the box.
+      tagBox.addEventListener("change", function () {
+        item.hashtags = cleanHashtags(tagBox.value);
+        tagBox.value = item.hashtags;
+        updateTagCount();
+        save();
+      });
+      tagLabel.appendChild(tagBox);
+      card.appendChild(tagLabel);
+
+      const copyRow = el("div", "helper-row");
+      copyRow.appendChild(copyButton("Copy description", function () { return item.description; }));
+      copyRow.appendChild(copyButton("Copy hashtags", function () { return item.hashtags; }));
+      card.appendChild(copyRow);
+
+      // Price research note
+      const noteLabel = el("label", "field", "Price research note");
+      const noteBox = document.createElement("input");
+      noteBox.value = item.priceNote;
+      noteBox.placeholder = "eBay sold $18-$25, 6 sales";
+      noteBox.addEventListener("input", function () {
+        item.priceNote = noteBox.value;
+        save();
+      });
+      noteLabel.appendChild(noteBox);
+      card.appendChild(noteLabel);
+
+      const promptRow = el("div", "helper-row");
+      promptRow.appendChild(copyButton("Copy AI prompt", function () { return buildPrompt([item]); }));
+      card.appendChild(promptRow);
+      card.appendChild(el("div", "small", "Paste the prompt into Claude and attach this item's photo from your camera roll."));
+      return card;
+    }
+
+    helperToggle.addEventListener("click", function () {
+      helperView = !helperView;
+      save();
+      render();
+    });
+
+    helperShowAllInput.checked = helperShowAll;
+    helperShowAllInput.addEventListener("change", function () {
+      helperShowAll = helperShowAllInput.checked;
+      save();
+      render();
+    });
+
+    document.getElementById("helper-copy-all").addEventListener("click", function () {
+      const button = document.getElementById("helper-copy-all");
+      if (lastHelperItems.length === 0) {
+        showHelperNote("No items are shown, so there is nothing to copy.", true);
+        return;
+      }
+      copyText(buildPrompt(lastHelperItems))
+        .then(function () {
+          flash(button, "Copied \u2713");
+          showHelperNote("Copied a prompt for " + lastHelperItems.length + " items. Paste it into Claude and attach one photo per item, in the same order.", false);
+        })
+        .catch(function () { showHelperNote("I couldn't copy it automatically.", true); });
+    });
+
+    document.getElementById("helper-fill").addEventListener("click", function () {
+      const box = document.getElementById("helper-paste");
+      const results = parseAiReply(box.value);
+      if (results.length === 0) {
+        showHelperNote("I couldn't find any items in that text. Each one needs to start with ITEM and its number.", true);
+        return;
+      }
+      const toFill = [];
+      let skipped = 0;
+      let missing = 0;
+      results.forEach(function (r) {
+        const item = items.filter(function (x) { return x.id === r.id; })[0];
+        if (!item) { missing++; return; }
+        if (item.description.trim() !== "") { skipped++; return; }
+        if (r.description === "" && r.hashtags === "") { missing++; return; }
+        toFill.push({ item: item, r: r });
+      });
+      if (toFill.length === 0) {
+        showHelperNote("Nothing to fill in. " + skipped + " already have a description and " + missing + " didn't match an item.", true);
+        return;
+      }
+      let message = "Fill in " + toFill.length + " items with the AI's text?";
+      if (skipped > 0) message += "\n" + skipped + " already have a description and will be skipped.";
+      if (!confirm(message)) return;
+      let wrongTagCount = 0;
+      toFill.forEach(function (pair) {
+        pair.item.description = pair.r.description;
+        pair.item.hashtags = cleanHashtags(pair.r.hashtags, HASHTAG_COUNT);
+        if (hashtagTotal(pair.item.hashtags) !== HASHTAG_COUNT) wrongTagCount++;
+      });
+      box.value = "";
+      save();
+      render();
+      let note = "Filled in " + toFill.length + " items.";
+      if (skipped > 0) note += " Skipped " + skipped + " that already had a description.";
+      if (missing > 0) note += " " + missing + " didn't match an item.";
+      if (wrongTagCount > 0) note += " " + wrongTagCount + " don't have exactly " + HASHTAG_COUNT + " hashtags, so check them.";
+      note += " Filled-in items drop out of this view unless you tick 'Also show items that already have a description'.";
+      showHelperNote(note, wrongTagCount > 0 || missing > 0);
+    });
+
     const expandedSold = new Set();
 
     function render() {
       const list = document.getElementById("list");
       list.innerHTML = "";
+      lastHelperItems = [];
       let itemTotal = 0;
       let shown = 0;
       const dueNames = [];
@@ -1521,13 +1965,26 @@
 
         if (filter !== "All" && item.site !== filter) return;
         if (statusFilter !== "All" && item.status !== statusFilter) return;
+        if (baggedFilter === "Bagged" && !item.bagged) return;
+        if (baggedFilter === "Not bagged" && item.bagged) return;
+        if (searchText !== "" && !matchesSearch(item)) return;
+
+        // Listing helper view: unsold items only, usually just the ones with no description yet.
+        if (helperView) {
+          if (item.status === "Sold") return;
+          if (!helperShowAll && item.description.trim() !== "") return;
+          shown++;
+          lastHelperItems.push(item);
+          list.appendChild(buildHelperCard(item));
+          return;
+        }
         shown++;
 
-        // Sold items shrink to name, site and profit unless you are filtering by Sold (tap one to open it).
+        // Sold items shrink to number, name, site and profit unless you are filtering by Sold (tap one to open it).
         if (item.status === "Sold" && statusFilter !== "Sold" && !expandedSold.has(item)) {
           const mini = el("button", "sold-mini");
           mini.type = "button";
-          mini.appendChild(el("span", "sold-name", item.name));
+          mini.appendChild(el("span", "sold-name", "#" + item.id + " " + item.name));
           mini.appendChild(el("span", "sold-site", item.site));
           mini.appendChild(el("span", "sold-profit", money(profit)));
           mini.onclick = function () {
@@ -1552,10 +2009,11 @@
         }
 
         const main = el("div", "card-main");
+        main.appendChild(el("div", "card-num", "#" + item.id));
         main.appendChild(el("div", "card-title", item.name));
 
-        // Site, status and the photo checklist
-        const meta = el("div", "card-meta", item.site + " · " + item.status);
+        // Site, status, storage spot, bagged and the photo checklist
+        const meta = el("div", "card-meta", item.site + " · " + item.status + (item.location ? " · " + item.location : ""));
         const count = photoCount(item);
         if (count === PHOTO_TYPES.length) {
           const badge = el("span", "badge ok", "✓ Photos");
@@ -1565,6 +2023,13 @@
           const badge = el("span", "badge", "Photos " + count + "/" + PHOTO_TYPES.length);
           badge.title = "Photos taken";
           meta.appendChild(badge);
+        }
+        if (item.bagged) {
+          const bagBadge = el("span", "badge ok", "✓ Bagged");
+          bagBadge.title = "Bagged and numbered";
+          meta.appendChild(bagBadge);
+        } else {
+          meta.appendChild(el("span", "badge", "Not bagged"));
         }
         main.appendChild(meta);
 
@@ -1635,9 +2100,22 @@
         list.appendChild(card);
       });
 
+      if (helperView && shown === 0) {
+        list.appendChild(el("div", "empty-note", helperShowAll
+          ? "No unsold items match your search and filters."
+          : "Nothing to show. Every unsold item that matches already has a description."));
+      }
+
+      // The helper panel and its button
+      helperToggle.textContent = "Listing helper: " + (helperView ? "On" : "Off");
+      helperToggle.className = helperView ? "primary" : "";
+      helperPanel.style.display = helperView ? "block" : "none";
+      helperShowAllInput.checked = helperShowAll;
+
       const parts = [];
       if (filter !== "All") parts.push(filter);
       if (statusFilter !== "All") parts.push(statusFilter);
+      if (baggedFilter !== "All") parts.push(baggedFilter);
       document.getElementById("filters-summary").textContent = "Filters" + (parts.length ? ": " + parts.join(" \u00B7 ") : "");
       document.getElementById("list-count").textContent =
         "Showing " + shown + " of " + items.length + " items" + (parts.length ? " (" + parts.join(", ") + ")" : "");
@@ -1694,15 +2172,28 @@
       const soldFor = status === "Sold" && soldForInput.value !== "" ? Number(soldForInput.value) : null;
 
       let priceChanged = "";
+      let id;
+      let searchWords = "";
       if (editingIndex !== null) {
         const old = items[editingIndex];
         priceChanged = current !== old.current ? todayText() : old.priceChanged;
+        id = old.id;
+        searchWords = old.searchWords;
+      } else {
+        id = nextItemId++;
       }
 
       const item = {
+        id: id,
         name: document.getElementById("name").value,
         site: siteInput.value,
         status: status,
+        location: locationInput.value.trim(),
+        bagged: baggedInput.checked,
+        description: descriptionInput.value.trim(),
+        hashtags: cleanHashtags(hashtagsInput.value),
+        priceNote: priceNoteInput.value.trim(),
+        searchWords: searchWords,
         photos: photos,
         picture: formPhoto,
         posted: postedInput.value,
@@ -1746,14 +2237,14 @@
     }
 
     document.getElementById("export-button").addEventListener("click", function () {
-      const header = ["Item", "Site", "Status"];
+      const header = ["Item number", "Item", "Site", "Status", "Storage spot", "Bagged"];
       PHOTO_TYPES.forEach(function (type) { header.push("Photo: " + type.label); });
-      header.push("Date posted", "Date sold", "Days to sell", "Original price", "Current price", "Last price change", "Sold for", "Bumped", "Bump %", "Bump cost", "Profit");
+      header.push("Date posted", "Date sold", "Days to sell", "Original price", "Current price", "Last price change", "Sold for", "Bumped", "Bump %", "Bump cost", "Profit", "Description", "Hashtags", "Price research");
       const rows = [header];
 
       items.forEach(function (item) {
         const d = daysToSell(item);
-        const row = [item.name, item.site, item.status];
+        const row = [item.id, item.name, item.site, item.status, item.location, item.bagged ? "Yes" : "No"];
         PHOTO_TYPES.forEach(function (type) {
           row.push(item.photos && item.photos[type.key] ? "Yes" : "No");
         });
@@ -1765,7 +2256,8 @@
           item.bump ? "Yes" : "No",
           item.bump && PLATFORMS[item.site] && PLATFORMS[item.site].bumpPercent ? PLATFORMS[item.site].bumpPercent : "",
           feeTotal(item).toFixed(2),
-          item.status === "Sold" ? profitOf(item).toFixed(2) : ""
+          item.status === "Sold" ? profitOf(item).toFixed(2) : "",
+          item.description, item.hashtags, item.priceNote
         );
         rows.push(row);
       });
@@ -1811,7 +2303,8 @@
         items: items,
         goals: goals,
         balances: balances,
-        remindDays: remindDays
+        remindDays: remindDays,
+        nextItemId: nextItemId
       });
     }
 
@@ -1885,6 +2378,9 @@
 
       items = newItems;
       items.forEach(migrateItem);
+      // Keep the numbers from the backup. Older backups have none, so they get new ones.
+      nextItemId = Number(data.nextItemId) >= 1 ? Math.floor(Number(data.nextItemId)) : 1;
+      assignIds();
       goals = newGoals;
       balances = {};
       PLATFORM_NAMES.forEach(function (name) {
