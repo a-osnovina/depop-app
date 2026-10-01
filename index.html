@@ -133,7 +133,7 @@
     .card-profit { font-weight: 700; color: #1a7f37; margin-top: 2px; }
     .badge { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.08); color: #555; margin-left: 4px; }
     .badge.ok { background: #1a7f37; color: #ffffff; font-weight: 700; }
-    .badge.slot { background: #0b5cad; color: #ffffff; font-weight: 700; }
+    .badge.slot { background: #0b5cad; color: #ffffff; font-weight: 700; cursor: pointer; }
     .due { font-size: 13px; color: #b42318; font-weight: bold; }
     .sold-mini { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; min-height: 48px; margin: 6px 0; padding: 8px 12px; border-radius: 12px; background: #dff3e3; border: 0; border-left: 6px solid #2e9b4f; font-size: 15px; color: inherit; }
     .sold-mini.shipped { background: #eceff1; border-left-color: #78909c; }
@@ -156,14 +156,35 @@
 
     /* Slot screens */
     .slot-item-name { font-weight: 700; font-size: 17px; margin-top: 12px; overflow-wrap: anywhere; }
-    .slot-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; max-height: 55vh; overflow: auto; }
-    .slot-btn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; min-height: 48px; padding: 6px 12px; }
-    .slot-btn .slot-code { flex: none; min-width: 52px; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .slot-btn .slot-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .slot-btn .slot-status { flex: none; font-size: 12px; color: #444; }
-    .slot-btn.empty { background: #f6f6f6; border-style: dashed; color: #777; }
-    .slot-btn.full { background: #e0efff; border-color: #3b82c4; }
-    .slot-btn.sold { background: #dff3e3; border-color: #2e9b4f; }
+    .slot-pic { display: block; width: 140px; height: 140px; object-fit: cover; object-position: top; border-radius: 12px; margin-top: 12px; background: #d9d9d9; }
+    .tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; max-height: 58vh; overflow: auto; }
+    .tile { display: flex; flex-direction: column; align-items: stretch; padding: 0; min-height: 0; text-align: left; border: 1px solid #3b82c4; border-radius: 12px; overflow: hidden; background: #e0efff; font-size: 14px; }
+    .tile-pic { position: relative; width: 100%; aspect-ratio: 1 / 1; background: #d9d9d9; display: flex; align-items: center; justify-content: center; color: #666; font-size: 13px; }
+    .tile-pic img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+    .tile-code { position: absolute; top: 6px; left: 6px; background: #0b5cad; color: #ffffff; font-weight: 700; font-size: 13px; padding: 2px 8px; border-radius: 999px; }
+    .tile-info { padding: 6px 8px 8px; }
+    .tile-name { font-weight: 700; font-size: 14px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+    .tile-sub { font-size: 12px; color: #444; margin-top: 2px; }
+    .tile.sold { background: #dff3e3; border-color: #2e9b4f; }
+    .tile.empty { background: #f6f6f6; border-style: dashed; border-color: #b8b8b8; color: #777; }
+    .tile.empty .tile-pic { aspect-ratio: 2 / 1; background: #f6f6f6; font-weight: 700; font-size: 15px; color: #777; }
+    .tile.empty .tile-code { background: #777777; }
+
+    /* Bin buttons on the main page */
+    .scan-row { margin-top: 10px; }
+    .scan-row button { width: 100%; }
+    #bin-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    #bin-chips:empty { display: none; }
+    .chip { display: flex; flex-direction: column; align-items: flex-start; flex: 1 1 110px; min-height: 56px; padding: 6px 12px; text-align: left; border: 1px solid #3b82c4; background: #e0efff; }
+    .chip .chip-name { font-weight: 700; }
+    .chip .chip-count { font-size: 13px; color: #444; }
+
+    /* Camera */
+    #camera-overlay { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 70; background: #000000; display: flex; flex-direction: column; }
+    #camera-video { flex: 1; min-height: 0; width: 100%; object-fit: cover; background: #000000; }
+    .camera-bar { padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: #111111; color: #ffffff; }
+    #camera-msg { text-align: center; margin-bottom: 10px; font-size: 15px; }
+    .camera-bar button { width: 100%; }
 
     /* Bins and slots panel */
     .bin-row { padding: 10px 0 12px; border-bottom: 1px solid #eeeeee; }
@@ -324,8 +345,10 @@
   </div>
 
   <!-- BINS AND SLOTS -->
+  <div class="scan-row"><button type="button" id="scan-button" class="primary">Scan QR code</button></div>
+  <div id="bin-chips"></div>
   <details class="filters-box" id="bins-box">
-    <summary id="bins-summary">Bins and slots</summary>
+    <summary id="bins-summary">Manage bins and labels</summary>
     <div class="filters-panel">
       <div id="bins-list"></div>
       <form id="bin-form">
@@ -403,6 +426,7 @@
       <label class="field">Slot
         <select id="slot"><option value="">No slot</option></select>
       </label>
+      <div id="slot-suggest" class="small" style="grid-column: 1 / -1; margin-top: 6px;"></div>
     </div>
 
     <label class="field">Weight (oz) <input id="weight" type="number" inputmode="decimal" step="0.1" min="0" placeholder="0"></label>
@@ -463,6 +487,14 @@
     <div class="modal-panel" id="scan-body"></div>
   </div>
 
+  <div id="camera-overlay" hidden>
+    <video id="camera-video" playsinline muted></video>
+    <div class="camera-bar">
+      <div id="camera-msg"></div>
+      <button type="button" id="camera-cancel">Cancel</button>
+    </div>
+  </div>
+
   <div id="labels-overlay" hidden>
     <div class="labels-bar">
       <div class="labels-title" id="labels-title"></div>
@@ -506,11 +538,14 @@
     const OCR_SCRIPT = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
     // The QR code maker is only downloaded when you first open the labels page.
     const QR_SCRIPT = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js";
+    // The QR code reader is only downloaded if your phone's browser can't read QR codes by itself.
+    const JSQR_SCRIPT = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js";
 
     let items = [];
     let goals = [];
     let balances = {};
     let bins = [];
+    let freed = {};   // when each slot was last emptied, like { "A|3": 1767225600000 }
     let editingIndex = null;
     let filter = "All";
     let statusFilter = "All";
@@ -539,6 +574,11 @@
       bins = DEFAULT_BINS.map(function (b) { return { name: b.name, slots: b.slots }; });
     }
     try {
+      freed = cleanFreed(JSON.parse(localStorage.getItem("freed")));
+    } catch (e) {
+      freed = {};
+    }
+    try {
       const savedFilter = localStorage.getItem("filter");
       if (PLATFORM_NAMES.indexOf(savedFilter) !== -1) filter = savedFilter;
       const savedStatusFilter = localStorage.getItem("statusFilter");
@@ -559,6 +599,17 @@
         if (slots > MAX_SLOTS) slots = MAX_SLOTS;
         if (name === "" || result.some(function (x) { return x.name === name; })) return;
         result.push({ name: name, slots: slots });
+      });
+      return result;
+    }
+
+    // Cleans the "when was each slot emptied" list (from storage or a backup).
+    function cleanFreed(obj) {
+      const result = {};
+      if (!obj || typeof obj !== "object" || Array.isArray(obj)) return result;
+      Object.keys(obj).forEach(function (key) {
+        const t = Number(obj[key]);
+        if (key.indexOf("|") > 0 && t > 0) result[key] = t;
       });
       return result;
     }
@@ -634,6 +685,7 @@
         localStorage.setItem("goals", JSON.stringify(goals));
         localStorage.setItem("balances", JSON.stringify(balances));
         localStorage.setItem("bins", JSON.stringify(bins));
+        localStorage.setItem("freed", JSON.stringify(freed));
         localStorage.setItem("filter", filter);
         localStorage.setItem("statusFilter", statusFilter);
         localStorage.setItem("remindDays", String(remindDays));
@@ -798,10 +850,45 @@
       document.getElementById("slot-fields").style.display = statusInput.value === "Shipped" ? "none" : "";
     }
 
+    // Remembers when a slot was emptied, so the app can suggest the most recently emptied one.
+    function markFreed(binName, slot) {
+      if (binName && slot > 0) freed[binName + "|" + slot] = Date.now();
+    }
+
+    // The empty slot that was emptied most recently. If none has been emptied yet, the first empty slot.
+    function suggestSlot() {
+      let best = null;
+      bins.forEach(function (bin) {
+        for (let n = 1; n <= bin.slots; n++) {
+          if (itemInSlot(bin.name, n) !== -1) continue;
+          const t = freed[bin.name + "|" + n] || 0;
+          if (best === null || t > best.t) best = { bin: bin.name, slot: n, t: t };
+        }
+      });
+      return best;
+    }
+
+    // Fills in the bin and slot boxes of a new item with the suggestion.
+    function applySuggestedSlot() {
+      const note = document.getElementById("slot-suggest");
+      note.textContent = "";
+      if (bins.length === 0) return;
+      const pick = suggestSlot();
+      if (!pick) {
+        note.textContent = "Every slot is full. Add slots under Manage bins and labels, or ship something first.";
+        return;
+      }
+      binInput.value = pick.bin;
+      refreshSlotOptions();
+      slotInput.value = String(pick.slot);
+      note.textContent = "Suggested " + slotLabel(pick.bin, pick.slot) + (pick.t ? ", the slot emptied most recently." : ", the first empty slot.") + " Change it if you like.";
+    }
+
     function markShipped(item) {
       const spot = item.bin && item.slot ? slotLabel(item.bin, item.slot) : "";
       const question = "Mark " + item.name + " as shipped?" + (spot ? " That frees slot " + spot + "." : "");
       if (!confirm(question)) return false;
+      markFreed(item.bin, item.slot);
       item.status = "Shipped";
       item.bin = "";
       item.slot = 0;
@@ -809,6 +896,9 @@
       render();
       return true;
     }
+
+    binInput.addEventListener("change", function () { document.getElementById("slot-suggest").textContent = ""; });
+    slotInput.addEventListener("change", function () { document.getElementById("slot-suggest").textContent = ""; });
 
     binInput.addEventListener("change", refreshSlotOptions);
 
@@ -991,6 +1081,7 @@
       updateSoldForUI();
       updateSlotUI();
       refreshSlotOptions();
+      document.getElementById("slot-suggest").textContent = "";
       updateBumpUI(true);
       submitButton.textContent = "Add item";
       form.style.display = "none";
@@ -1004,6 +1095,7 @@
       } else {
         editingIndex = null;
         showForm();
+        applySuggestedSlot();
         document.getElementById("name").focus();
       }
     });
@@ -1023,6 +1115,7 @@
       binInput.value = item.bin || "";
       refreshSlotOptions();
       slotInput.value = item.slot ? String(item.slot) : "";
+      document.getElementById("slot-suggest").textContent = "";
       weightInput.value = item.weight ? item.weight : "";
       PHOTO_TYPES.forEach(function (type) {
         document.getElementById("photo-" + type.key).checked = !!(item.photos && item.photos[type.key]);
@@ -1366,6 +1459,7 @@
       updateSoldForUI();
       updateSlotUI();
       if (found.sold && found.price !== null) soldForInput.value = found.price;
+      if (!found.sold) applySuggestedSlot();
       updateBumpUI(true);
       showForm();
       form.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1565,6 +1659,12 @@
         }));
       } else {
         const item = items[index];
+        if (item.picture) {
+          const pic = el("img", "slot-pic");
+          pic.src = item.picture;
+          pic.alt = item.name;
+          scanBody.appendChild(pic);
+        }
         scanBody.appendChild(el("div", "slot-item-name", item.name));
         let detail = item.site + " \u00B7 " + item.status + " \u00B7 " + money(salePrice(item));
         if (item.weight > 0) detail += " \u00B7 " + formatWeight(item.weight);
@@ -1596,17 +1696,35 @@
       if (waiting > 0) summary += " \u00B7 " + waiting + " sold, waiting to ship";
       scanBody.appendChild(el("div", "small", summary));
 
-      const list = el("div", "slot-list");
+      const list = el("div", "tile-grid");
       for (let n = 1; n <= bin.slots; n++) {
         const idx = itemInSlot(bin.name, n);
         const item = idx === -1 ? null : items[idx];
-        const row = el("button", "slot-btn " + (item ? (item.status === "Sold" ? "sold" : "full") : "empty"));
-        row.type = "button";
-        row.appendChild(el("span", "slot-code", slotLabel(bin.name, n)));
-        row.appendChild(el("span", "slot-name", item ? item.name : "Empty"));
-        if (item) row.appendChild(el("span", "slot-status", item.status));
-        row.onclick = function () { openSlotView(bin, n); };
-        list.appendChild(row);
+        const tile = el("button", "tile " + (item ? (item.status === "Sold" ? "sold" : "full") : "empty"));
+        tile.type = "button";
+
+        const pic = el("div", "tile-pic");
+        if (item && item.picture) {
+          const img = el("img");
+          img.src = item.picture;
+          img.alt = item.name;
+          pic.appendChild(img);
+        } else if (item) {
+          pic.textContent = "No picture";
+        } else {
+          pic.textContent = "Empty";
+        }
+        pic.appendChild(el("span", "tile-code", slotLabel(bin.name, n)));
+        tile.appendChild(pic);
+
+        if (item) {
+          const info = el("div", "tile-info");
+          info.appendChild(el("div", "tile-name", item.name));
+          info.appendChild(el("div", "tile-sub", item.status + (item.weight > 0 ? " · " + formatWeight(item.weight) : "")));
+          tile.appendChild(info);
+        }
+        tile.onclick = function () { openSlotView(bin, n); };
+        list.appendChild(tile);
       }
       scanBody.appendChild(list);
       scanBody.appendChild(modalButton("Close", "", closeScanModal));
@@ -1621,7 +1739,27 @@
       scanModal.hidden = false;
     }
 
-    // A QR code opens the app with ?bin=A&slot=3 (or just ?bin=A for the whole bin).
+    // Opens the right screen for a scanned bin and slot (from a QR code in the address or from the in-app camera).
+    function openScanTarget(binParam, slotParam) {
+      const bin = findBin(binParam);
+      if (!bin) {
+        openScanMessage("Bin " + String(binParam).toUpperCase() + " isn't set up here",
+          "Add it under Manage bins and labels. If you expected to see items, this may be a different browser or device than the one that holds your data.");
+        return;
+      }
+      if (slotParam === null || slotParam === undefined || slotParam === "") {
+        openBinView(bin);
+        return;
+      }
+      const n = Number(slotParam);
+      if (!(n >= 1 && n <= bin.slots && Math.floor(n) === n)) {
+        openScanMessage("Slot " + slotParam + " doesn't exist", "Bin " + bin.name + " has " + bin.slots + " slots. You can change that under Manage bins and labels.");
+        return;
+      }
+      openSlotView(bin, n);
+    }
+
+    // A QR code opened with the phone's own camera app arrives as ?bin=A&slot=3 (or just ?bin=A for the whole bin).
     function handleScanLink() {
       let params;
       try {
@@ -1634,24 +1772,140 @@
       const slotParam = params.get("slot");
       // Take the scan details out of the address so refreshing the page doesn't reopen this screen.
       try { history.replaceState(null, "", window.location.pathname + window.location.hash); } catch (e) {}
-
-      const bin = findBin(binParam);
-      if (!bin) {
-        openScanMessage("Bin " + binParam.toUpperCase() + " isn't set up here",
-          "Add it under Bins and slots. If you expected to see items, this may be a different browser or device than the one that holds your data.");
-        return;
-      }
-      if (slotParam === null || slotParam === "") {
-        openBinView(bin);
-        return;
-      }
-      const n = Number(slotParam);
-      if (!(n >= 1 && n <= bin.slots && Math.floor(n) === n)) {
-        openScanMessage("Slot " + slotParam + " doesn't exist", "Bin " + bin.name + " has " + bin.slots + " slots. You can change that under Bins and slots.");
-        return;
-      }
-      openSlotView(bin, n);
+      openScanTarget(binParam, slotParam);
     }
+
+    // ---- scan with the camera inside the app ----
+    const cameraOverlay = document.getElementById("camera-overlay");
+    const cameraVideo = document.getElementById("camera-video");
+    const cameraMsg = document.getElementById("camera-msg");
+    let cameraStream = null;
+    let cameraTimer = null;
+    let cameraDetector = null;
+    const frameCanvas = document.createElement("canvas");
+
+    function stopCamera() {
+      clearTimeout(cameraTimer);
+      cameraTimer = null;
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(function (track) { track.stop(); });
+        cameraStream = null;
+      }
+      cameraVideo.srcObject = null;
+      cameraOverlay.hidden = true;
+    }
+
+    // Chrome on Android can read QR codes by itself. Other browsers (iPhone Safari) use the jsQR helper.
+    function prepareReader() {
+      cameraDetector = null;
+      const useHelper = function () {
+        if (cameraDetector) return null;
+        return loadScript(JSQR_SCRIPT, "jsQR");
+      };
+      if (window.BarcodeDetector && typeof window.BarcodeDetector.getSupportedFormats === "function") {
+        return window.BarcodeDetector.getSupportedFormats()
+          .then(function (formats) {
+            if (formats.indexOf("qr_code") !== -1) cameraDetector = new window.BarcodeDetector({ formats: ["qr_code"] });
+          })
+          .catch(function () {})
+          .then(useHelper);
+      }
+      return Promise.resolve().then(useHelper);
+    }
+
+    // Looks at one camera picture and returns the text of a QR code in it ("" if none).
+    function readFrame() {
+      if (cameraDetector) {
+        return cameraDetector.detect(cameraVideo).then(function (codes) {
+          return codes.length > 0 ? String(codes[0].rawValue || "") : "";
+        });
+      }
+      const scale = Math.min(1, 640 / cameraVideo.videoWidth);
+      const w = Math.max(1, Math.round(cameraVideo.videoWidth * scale));
+      const h = Math.max(1, Math.round(cameraVideo.videoHeight * scale));
+      frameCanvas.width = w;
+      frameCanvas.height = h;
+      const ctx = frameCanvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(cameraVideo, 0, 0, w, h);
+      const pixels = ctx.getImageData(0, 0, w, h);
+      const code = window.jsQR(pixels.data, w, h, { inversionAttempts: "dontInvert" });
+      return Promise.resolve(code ? code.data : "");
+    }
+
+    // Uses a scanned label if it is one of ours. Returns true when it was.
+    function useScannedText(text) {
+      let url;
+      try {
+        url = new URL(text);
+      } catch (e) {
+        return false;
+      }
+      const binParam = url.searchParams.get("bin");
+      if (binParam === null) return false;
+      stopCamera();
+      openScanTarget(binParam, url.searchParams.get("slot"));
+      return true;
+    }
+
+    function scanLoop() {
+      if (!cameraStream) return;
+      const later = function () {
+        if (cameraStream) cameraTimer = setTimeout(scanLoop, 250);
+      };
+      if (!cameraVideo.videoWidth) {
+        later();
+        return;
+      }
+      readFrame()
+        .then(function (text) {
+          if (!cameraStream) return;
+          if (text) {
+            if (useScannedText(text)) return;
+            cameraMsg.textContent = "That QR code isn't one of your labels. Try another.";
+          }
+          later();
+        })
+        .catch(later);
+    }
+
+    function startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        openScanMessage("Camera not available", "This browser can't open the camera here. You can still scan a label with your phone's normal camera app.");
+        return;
+      }
+      cameraMsg.textContent = "Starting the camera...";
+      cameraOverlay.hidden = false;
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio: false })
+        .then(function (stream) {
+          cameraStream = stream;
+          cameraVideo.srcObject = stream;
+          return cameraVideo.play();
+        })
+        .then(function () {
+          cameraMsg.textContent = "Loading the QR reader...";
+          return prepareReader();
+        })
+        .then(function () {
+          if (!cameraStream) return;
+          cameraMsg.textContent = "Point the camera at a slot or bin label";
+          scanLoop();
+        })
+        .catch(function (err) {
+          stopCamera();
+          const denied = err && (err.name === "NotAllowedError" || err.name === "SecurityError");
+          openScanMessage("Couldn't scan",
+            (denied
+              ? "The camera is blocked for this site. Allow camera access in your browser settings and try again."
+              : "The camera or the QR reader could not be started. Check your internet connection and try again.") +
+            " You can also scan a label with your phone's normal camera app.");
+        });
+    }
+
+    document.getElementById("scan-button").addEventListener("click", startCamera);
+    document.getElementById("camera-cancel").addEventListener("click", stopCamera);
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !cameraOverlay.hidden) stopCamera();
+    });
 
     // ---- bins and slots panel ----
     let editingBin = null;
@@ -1735,6 +1989,9 @@
         }
         if (!confirm("Delete bin " + bin.name + "? Its printed labels will stop working.")) return;
         bins.splice(bins.indexOf(bin), 1);
+        Object.keys(freed).forEach(function (key) {
+          if (key.indexOf(bin.name + "|") === 0) delete freed[key];
+        });
         editingBin = null;
         save();
         render();
@@ -1813,8 +2070,19 @@
       });
 
       if (bins.length === 0) box.appendChild(el("div", "small", "No bins yet. Add one below."));
-      document.getElementById("bins-summary").textContent =
-        "Bins and slots" + (totalAll > 0 ? " \u00B7 " + usedAll + "/" + totalAll + " used" : "");
+
+      // One button per bin on the main page: tap it to see what is inside, with pictures.
+      const chips = document.getElementById("bin-chips");
+      chips.innerHTML = "";
+      bins.forEach(function (bin) {
+        const chip = el("button", "chip");
+        chip.type = "button";
+        chip.appendChild(el("span", "chip-name", "Bin " + bin.name));
+        chip.appendChild(el("span", "chip-count", binUsed(bin) + "/" + bin.slots + " slots used"));
+        chip.onclick = function () { openBinView(bin); };
+        chips.appendChild(chip);
+      });
+      document.getElementById("bins-summary").textContent = "Manage bins and labels";
     }
 
     // ---- printable labels: a QR code plus big readable text, one per slot ----
@@ -2190,7 +2458,11 @@
         const meta = el("div", "card-meta", item.site + " · " + item.status);
         if (item.bin && item.slot > 0 && item.status !== "Shipped") {
           const slotBadge = el("span", "badge slot", slotLabel(item.bin, item.slot));
-          slotBadge.title = "Bin " + item.bin + ", slot " + item.slot;
+          slotBadge.title = "Bin " + item.bin + ", slot " + item.slot + " (tap to see it)";
+          slotBadge.onclick = function () {
+            const itemBin = findBin(item.bin);
+            if (itemBin) openSlotView(itemBin, item.slot);
+          };
           meta.appendChild(slotBadge);
         }
         const count = photoCount(item);
@@ -2261,6 +2533,7 @@
         const deleteButton = el("button", "danger", "Delete");
         deleteButton.onclick = function () {
           if (confirm("Delete " + item.name + "?")) {
+            if (item.status !== "Shipped") markFreed(item.bin, item.slot);
             items.splice(index, 1);
             closeForm();
             save();
@@ -2386,6 +2659,10 @@
         bump: bumpInput.checked,
         bumpAmount: bumpInput.checked && !PLATFORMS[siteInput.value].bumpPercent ? (Number(bumpAmountInput.value) || 0) : 0
       };
+      if (editingIndex !== null) {
+        const was = items[editingIndex];
+        if (was.bin && was.slot > 0 && (was.bin !== bin || was.slot !== slot)) markFreed(was.bin, was.slot);
+      }
       if (editingIndex === null) {
         items.push(item);
       } else {
@@ -2484,6 +2761,7 @@
         goals: goals,
         balances: balances,
         bins: bins,
+        freed: freed,
         remindDays: remindDays
       });
     }
@@ -2562,6 +2840,7 @@
       items.forEach(migrateItem);
       goals = newGoals;
       if (newBins) bins = newBins;
+      freed = cleanFreed(data.freed);
       editingBin = null;
       balances = {};
       PLATFORM_NAMES.forEach(function (name) {
