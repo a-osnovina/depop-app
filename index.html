@@ -12,14 +12,14 @@
     h1 { font-size: 22px; margin: 0; }
     h2 { font-size: 18px; margin: 18px 0 8px; }
     .small { font-size: 12px; color: #555; }
- 
+
     /* Buttons: big enough for a thumb */
     button { font: inherit; font-size: 16px; min-height: 44px; padding: 0 16px; border: 1px solid #b8b8b8; border-radius: 10px; background: #ffffff; color: #222; cursor: pointer; touch-action: manipulation; }
     button:disabled { opacity: 0.5; }
     button.primary { background: #0b5cad; border-color: #0b5cad; color: #ffffff; font-weight: 600; }
     button.danger { color: #b42318; }
     button.small-btn { min-height: 40px; padding: 0 12px; font-size: 14px; }
- 
+
     /* Boxes: 16px text stops iPhones from zooming in when you tap one */
     input, select { font: inherit; font-size: 16px; min-height: 44px; padding: 8px 10px; border: 1px solid #b8b8b8; border-radius: 8px; background: #ffffff; color: #222; touch-action: manipulation; }
     .field { display: block; margin: 14px 0 0; font-size: 14px; font-weight: 600; }
@@ -27,7 +27,7 @@
     .check { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 4px 0 0; font-size: 16px; font-weight: 400; }
     .check input { width: 24px; height: 24px; min-height: 0; flex: none; }
     input[type="date"] { min-height: 44px; }
- 
+
     /* Top box that stays on screen */
     .summary { position: sticky; top: 0; z-index: 10; background: #eeeeee; border-radius: 0 0 12px 12px; padding: 10px 12px 12px; margin: 0 0 8px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); }
     .stats { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
@@ -47,14 +47,14 @@
     #goals-mini progress { width: 100%; height: 8px; display: block; }
     #mini-text { margin-top: 2px; }
     .dropdown-panel { position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid #ccc; border-radius: 0 0 12px 12px; padding: 4px 14px 14px; max-height: 65vh; overflow: auto; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
- 
+
     /* Platform balances */
     .bal-block { border-bottom: 1px solid #ddd; padding: 8px 0 12px; }
     .bal-block:last-child { border-bottom: 0; }
     .bal-name { font-weight: 700; font-size: 17px; margin-top: 6px; }
     .bal-line { display: flex; justify-content: space-between; margin-top: 8px; }
     .bal-line.total { font-weight: 700; }
- 
+
     /* Goals */
     .goals-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 8px; }
     #add-goal-button { white-space: nowrap; flex-shrink: 0; }
@@ -82,7 +82,7 @@
     .done-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #eeeeee; font-size: 14px; }
     .done-name { flex: 1; min-width: 0; color: #666; text-decoration: line-through; overflow-wrap: anywhere; }
     .done-row button { min-height: 36px; font-size: 13px; padding: 0 10px; }
- 
+
     /* Header and buttons above the list */
     .top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 4px; }
     .toolbar { display: flex; gap: 8px; margin: 12px 0 0; }
@@ -92,12 +92,13 @@
     #import-raw { display: none; margin-top: 6px; font-size: 13px; color: #555; }
     #import-raw summary { min-height: 40px; display: flex; align-items: center; }
     #import-raw pre { white-space: pre-wrap; background: #f6f6f6; padding: 8px; border-radius: 8px; margin: 6px 0 0; }
- 
+
     /* Add / edit form */
     #item-form { display: none; border: 1px solid #ccc; border-radius: 12px; padding: 2px 14px 16px; margin: 12px 0; scroll-margin-top: 170px; }
     #bump-amount-row { display: none; margin-left: 12px; }
     #sold-for-row { display: none; }
     #bump-note { margin-left: 12px; color: #444; }
+    #slot-fields { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; }
     fieldset { margin: 16px 0 0; border: 1px solid #ddd; border-radius: 10px; padding: 4px 12px 10px; }
     legend { font-size: 14px; font-weight: 600; padding: 0 6px; }
     #photo-boxes { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8px; }
@@ -107,7 +108,7 @@
     .form-actions { display: flex; gap: 8px; margin-top: 18px; }
     .form-actions button { flex: 1; }
     .form-actions #submit-button { flex: 2; }
- 
+
     /* Filters */
     .list-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
     .list-tools .field { margin: 0; }
@@ -115,12 +116,13 @@
     #remind-days { width: 72px; text-align: center; }
     #reduce-banner { display: none; background: #fdecea; color: #b42318; border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-weight: 600; }
     .count-right { text-align: right; margin-top: 6px; }
- 
+
     /* Item cards */
     .card { border-radius: 12px; padding: 12px; margin: 10px 0; border-left: 6px solid #999; }
     .row-progress { background: #fff4d6; border-left-color: #e0a800; }
     .row-listed { background: #e0efff; border-left-color: #3b82c4; }
     .row-sold { background: #dff3e3; border-left-color: #2e9b4f; }
+    .row-shipped { background: #eceff1; border-left-color: #78909c; }
     .card-top { display: flex; gap: 12px; }
     .thumb { flex: none; display: block; width: 84px; height: 84px; object-fit: cover; object-position: top; border-radius: 10px; background: #d9d9d9; }
     .thumb.empty { display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666; background: rgba(0, 0, 0, 0.08); }
@@ -131,24 +133,69 @@
     .card-profit { font-weight: 700; color: #1a7f37; margin-top: 2px; }
     .badge { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.08); color: #555; margin-left: 4px; }
     .badge.ok { background: #1a7f37; color: #ffffff; font-weight: 700; }
+    .badge.slot { background: #0b5cad; color: #ffffff; font-weight: 700; }
     .due { font-size: 13px; color: #b42318; font-weight: bold; }
     .sold-mini { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; min-height: 48px; margin: 6px 0; padding: 8px 12px; border-radius: 12px; background: #dff3e3; border: 0; border-left: 6px solid #2e9b4f; font-size: 15px; color: inherit; }
+    .sold-mini.shipped { background: #eceff1; border-left-color: #78909c; }
     .sold-mini .sold-name { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .sold-mini .sold-site { flex: none; font-size: 13px; color: #444; }
     .sold-mini .sold-profit { flex: none; font-weight: 700; color: #1a7f37; }
     .card-actions { display: flex; gap: 8px; margin-top: 12px; }
     .card-actions button { flex: 1; padding: 0 4px; font-size: 15px; white-space: nowrap; }
- 
-    /* Lower price pop-up */
-    #price-modal { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 50; background: rgba(0, 0, 0, 0.45); display: flex; align-items: flex-end; justify-content: center; }
+
+    /* Pop-ups: lower price, and the bin / slot screens */
+    #price-modal, #scan-modal { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 50; background: rgba(0, 0, 0, 0.45); display: flex; align-items: flex-end; justify-content: center; }
     .modal-panel { background: #ffffff; width: 100%; max-width: 760px; border-radius: 16px 16px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom)); max-height: 92vh; overflow: auto; }
     .modal-panel h3 { margin: 0 0 2px; font-size: 18px; overflow-wrap: anywhere; }
+    .modal-panel button.block { display: block; width: 100%; margin-top: 10px; }
     .suggest { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 56px; margin-top: 10px; text-align: left; }
     .suggest .pct { font-weight: 700; }
     .suggest .amt { text-align: right; }
     .suggest .amt small { display: block; font-size: 12px; color: #b42318; }
     #photo-details { display: none; }
- 
+
+    /* Slot screens */
+    .slot-item-name { font-weight: 700; font-size: 17px; margin-top: 12px; overflow-wrap: anywhere; }
+    .slot-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; max-height: 55vh; overflow: auto; }
+    .slot-btn { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; min-height: 48px; padding: 6px 12px; }
+    .slot-btn .slot-code { flex: none; min-width: 52px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .slot-btn .slot-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .slot-btn .slot-status { flex: none; font-size: 12px; color: #444; }
+    .slot-btn.empty { background: #f6f6f6; border-style: dashed; color: #777; }
+    .slot-btn.full { background: #e0efff; border-color: #3b82c4; }
+    .slot-btn.sold { background: #dff3e3; border-color: #2e9b4f; }
+
+    /* Bins and slots panel */
+    .bin-row { padding: 10px 0 12px; border-bottom: 1px solid #eeeeee; }
+    .bin-row:last-child { border-bottom: 0; }
+    .bin-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+    .bin-name { font-weight: 700; font-size: 17px; }
+    .bin-count { font-size: 14px; color: #444; }
+    .bin-row progress { width: 100%; height: 8px; display: block; margin-top: 6px; }
+    .bin-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .bin-actions button { min-height: 40px; font-size: 14px; padding: 0 6px; }
+    #bin-form { display: none; border: 1px solid #ccc; border-radius: 10px; padding: 2px 12px 14px; margin: 10px 0; }
+    #add-bin-button { width: 100%; margin-top: 10px; }
+
+    /* Label sheet */
+    #labels-overlay { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 60; background: #ffffff; overflow: auto; padding: 12px; }
+    .labels-bar { max-width: 760px; margin: 0 auto; }
+    .labels-title { font-size: 20px; font-weight: 700; }
+    #labels-note { margin-top: 4px; overflow-wrap: anywhere; }
+    #labels-note.warn { color: #b42318; font-weight: 600; }
+    .labels-grid { max-width: 760px; margin: 14px auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .label { border: 1.5px dashed #888; border-radius: 8px; padding: 10px 8px 8px; text-align: center; background: #ffffff; break-inside: avoid; page-break-inside: avoid; }
+    .label svg { display: block; width: 100%; max-width: 150px; height: auto; margin: 0 auto; }
+    .label-code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 30px; font-weight: 800; letter-spacing: 1px; margin-top: 4px; color: #000000; }
+    .label-sub { font-size: 12px; color: #444444; }
+    @page { margin: 0.5in; }
+    @media print {
+      body > *:not(#labels-overlay) { display: none !important; }
+      #labels-overlay { position: static; overflow: visible; padding: 0; }
+      .labels-bar { display: none; }
+      .labels-grid { max-width: none; margin: 0; grid-template-columns: repeat(3, 1fr); }
+    }
+
     /* Backup and restore */
     #backup-section { display: none; border: 1px solid #ddd; border-radius: 10px; padding: 10px 12px 12px; margin-top: 8px; }
     #backup-section button { min-height: 40px; font-size: 14px; }
@@ -161,6 +208,7 @@
     .filters-panel { border: 1px solid #ddd; border-radius: 10px; padding: 12px; margin-top: 8px; }
     .filters-panel .list-tools { margin-top: 0; }
     .filters-panel #export-button { width: 100%; margin-top: 14px; }
+    #bins-box { margin-top: 10px; }
     #backup-note { display: none; background: #e8f3ff; color: #0b3d75; border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
     #backup-note.warn { background: #fff4d6; color: #6b4a00; }
     #backup-text-box { margin-top: 6px; }
@@ -180,7 +228,7 @@
         <span class="stat-value profit">$<span id="total">0.00</span></span>
       </div>
     </div>
- 
+
     <div class="tabs">
       <details id="balances">
         <summary>Platform balances</summary>
@@ -217,7 +265,7 @@
           </div>
         </div>
       </details>
- 
+
       <details id="goals-box">
         <summary>Goals</summary>
         <div class="dropdown-panel">
@@ -229,15 +277,15 @@
             <progress id="overall-bar" value="0" max="1"></progress>
           </div>
           <div id="priority-hint" class="small">Your balance fills goals from the top. Tap a goal to change its order.</div>
- 
+
           <form id="goal-form">
             <label class="field">Goal name <input id="goal-name" required></label>
             <label class="field">Amount ($) <input id="goal-amount" type="number" inputmode="decimal" step="0.01" min="0.01" required></label>
             <div class="form-actions"><button type="submit" class="primary">Save goal</button></div>
           </form>
- 
+
           <div id="goal-list"></div>
- 
+
           <details id="purchased-goals">
             <summary id="purchased-summary">Purchased goals (0)</summary>
             <div id="purchased-list"></div>
@@ -245,18 +293,18 @@
         </div>
       </details>
     </div>
- 
+
     <div id="goals-mini">
       <progress id="mini-bar" value="0" max="1"></progress>
       <div id="mini-text" class="small"></div>
     </div>
   </div>
- 
+
   <div class="top">
     <h1>Resale Tracker</h1>
     <button type="button" id="backup-toggle" class="small-btn">Backup</button>
   </div>
- 
+
   <div id="backup-section">
     <div id="backup-info" class="small"></div>
     <div class="toolbar">
@@ -274,7 +322,21 @@
     </details>
     <div id="backup-note"></div>
   </div>
- 
+
+  <!-- BINS AND SLOTS -->
+  <details class="filters-box" id="bins-box">
+    <summary id="bins-summary">Bins and slots</summary>
+    <div class="filters-panel">
+      <div id="bins-list"></div>
+      <form id="bin-form">
+        <label class="field">Bin name (a short letter or word, like A) <input id="bin-name" maxlength="12" required></label>
+        <label class="field">Number of slots <input id="bin-slots" type="number" inputmode="numeric" step="1" min="1" max="100" value="12" required></label>
+        <div class="form-actions"><button type="submit" class="primary">Save bin</button></div>
+      </form>
+      <button type="button" id="add-bin-button">+ Add bin</button>
+    </div>
+  </details>
+
   <!-- ITEM LIST -->
   <h2>Item list</h2>
   <details class="filters-box" id="filters-box">
@@ -295,6 +357,7 @@
         <option>In progress</option>
         <option>Listed</option>
         <option>Sold</option>
+        <option>Shipped</option>
       </select>
     </label>
     <label class="remind-row">Remind me to lower prices after
@@ -314,7 +377,7 @@
     <summary>What the app read from the screenshot</summary>
     <pre id="import-raw-text"></pre>
   </details>
- 
+
   <form id="item-form">
     <label class="field">Item name <input id="name" required></label>
     <label class="field">Site
@@ -329,9 +392,21 @@
         <option>In progress</option>
         <option>Listed</option>
         <option>Sold</option>
+        <option>Shipped</option>
       </select>
     </label>
- 
+
+    <div id="slot-fields">
+      <label class="field">Bin
+        <select id="bin"><option value="">No bin</option></select>
+      </label>
+      <label class="field">Slot
+        <select id="slot"><option value="">No slot</option></select>
+      </label>
+    </div>
+
+    <label class="field">Weight (oz) <input id="weight" type="number" inputmode="decimal" step="0.1" min="0" placeholder="0"></label>
+
     <div class="field">
       Picture shown in your list
       <div><img id="pic-preview" alt="Item picture"></div>
@@ -341,34 +416,34 @@
       </div>
       <input type="file" id="pic-file" accept="image/*" hidden>
     </div>
- 
+
     <label class="check" style="margin-top:14px"><input type="checkbox" id="photos-all"> All photos taken</label>
     <fieldset id="photo-details">
       <legend>Tick the photos you have taken</legend>
       <div id="photo-boxes"></div>
     </fieldset>
- 
+
     <label class="field">Date posted <input id="posted" type="date"></label>
     <label class="field">Date sold <input id="sold" type="date"></label>
- 
+
     <label class="field">Original listed price ($) <input id="original" type="number" inputmode="decimal" step="0.01" min="0" value="0"></label>
     <label class="field">Current price ($) <input id="current" type="number" inputmode="decimal" step="0.01" min="0" placeholder="same as original"></label>
     <label class="field" id="sold-for-row">Sold for ($) <input id="sold-for" type="number" inputmode="decimal" step="0.01" min="0" placeholder="same as current price"></label>
- 
+
     <label class="check" style="margin-top:14px"><input type="checkbox" id="bump"> <span id="bump-label"></span></label>
     <label class="field" id="bump-amount-row">Bump cost ($) <input id="bump-amount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00"></label>
     <div id="bump-note"></div>
- 
+
     <div class="form-actions">
       <button type="submit" id="submit-button" class="primary">Add item</button>
       <button type="button" id="cancel-edit">Cancel</button>
     </div>
   </form>
- 
+
   <div id="reduce-banner"></div>
   <div id="list"></div>
   <div id="list-count" class="small count-right"></div>
- 
+
   <div id="price-modal" hidden>
     <div class="modal-panel">
       <h3 id="price-modal-title"></h3>
@@ -383,7 +458,23 @@
       </div>
     </div>
   </div>
- 
+
+  <div id="scan-modal" hidden>
+    <div class="modal-panel" id="scan-body"></div>
+  </div>
+
+  <div id="labels-overlay" hidden>
+    <div class="labels-bar">
+      <div class="labels-title" id="labels-title"></div>
+      <div class="small" id="labels-note"></div>
+      <div class="form-actions">
+        <button type="button" id="labels-print" class="primary">Print labels</button>
+        <button type="button" id="labels-close">Close</button>
+      </div>
+    </div>
+    <div class="labels-grid" id="labels-grid"></div>
+  </div>
+
   <script>
     // Bump settings for each platform. bumpPercent is worked out for you (percent of the current price);
     // a platform with bumpPercent: null asks you to type the bump cost in dollars instead.
@@ -393,10 +484,15 @@
       Facebook: { bumpLabel: "I boosted or renewed this listing on Facebook", bumpPercent: null }
     };
     const PLATFORM_NAMES = Object.keys(PLATFORMS);
- 
-    const STATUSES = ["In progress", "Listed", "Sold"];
-    const STATUS_CLASS = { "In progress": "row-progress", "Listed": "row-listed", "Sold": "row-sold" };
- 
+
+    // "Shipped" frees the slot the item was in. Sold items stay in their slot until they are shipped.
+    const STATUSES = ["In progress", "Listed", "Sold", "Shipped"];
+    const STATUS_CLASS = { "In progress": "row-progress", "Listed": "row-listed", "Sold": "row-sold", "Shipped": "row-shipped" };
+
+    // The bin you start with the first time the app opens. You can add bins and change slot counts in the app.
+    const DEFAULT_BINS = [{ name: "A", slots: 12 }];
+    const MAX_SLOTS = 100;
+
     // Add or rename photo types here.
     const PHOTO_TYPES = [
       { key: "tag", label: "Tag" },
@@ -405,19 +501,22 @@
       { key: "sleeves", label: "Sleeves" },
       { key: "care", label: "Care instructions" }
     ];
- 
+
     // The screenshot reader (Tesseract.js) is only downloaded when you first import a screenshot.
     const OCR_SCRIPT = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
- 
+    // The QR code maker is only downloaded when you first open the labels page.
+    const QR_SCRIPT = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js";
+
     let items = [];
     let goals = [];
     let balances = {};
+    let bins = [];
     let editingIndex = null;
     let filter = "All";
     let statusFilter = "All";
     let remindDays = 7;
     let formPhoto = "";
- 
+
     try {
       items = JSON.parse(localStorage.getItem("items")) || [];
     } catch (e) {
@@ -434,6 +533,12 @@
       balances = {};
     }
     try {
+      const rawBins = localStorage.getItem("bins");
+      bins = rawBins === null ? DEFAULT_BINS.map(function (b) { return { name: b.name, slots: b.slots }; }) : cleanBins(JSON.parse(rawBins));
+    } catch (e) {
+      bins = DEFAULT_BINS.map(function (b) { return { name: b.name, slots: b.slots }; });
+    }
+    try {
       const savedFilter = localStorage.getItem("filter");
       if (PLATFORM_NAMES.indexOf(savedFilter) !== -1) filter = savedFilter;
       const savedStatusFilter = localStorage.getItem("statusFilter");
@@ -441,7 +546,23 @@
       const savedRemind = Number(localStorage.getItem("remindDays"));
       if (savedRemind >= 1) remindDays = savedRemind;
     } catch (e) {}
- 
+
+    // Cleans a list of bins (from storage or a backup): upper-case names, no repeats, 1 to 100 slots.
+    function cleanBins(list) {
+      const result = [];
+      if (!Array.isArray(list)) return result;
+      list.forEach(function (b) {
+        if (!b || typeof b !== "object") return;
+        const name = String(b.name || "").trim().toUpperCase().slice(0, 12);
+        let slots = Math.floor(Number(b.slots));
+        if (!(slots >= 1)) slots = 1;
+        if (slots > MAX_SLOTS) slots = MAX_SLOTS;
+        if (name === "" || result.some(function (x) { return x.name === name; })) return;
+        result.push({ name: name, slots: slots });
+      });
+      return result;
+    }
+
     // Convert older saved items to the newer format.
     function migrateItem(item) {
       item.name = String(item.name || "");
@@ -457,6 +578,14 @@
       if (item.soldFor !== null && item.soldFor !== undefined) item.soldFor = Number(item.soldFor) || 0;
       if (typeof item.photos !== "object" || item.photos === null) item.photos = {};
       if (typeof item.picture !== "string" || item.picture.indexOf("data:image/") !== 0) item.picture = "";
+      // Bin, slot and weight are new. Items without them simply have no slot.
+      item.bin = typeof item.bin === "string" ? item.bin : "";
+      item.slot = Math.floor(Number(item.slot)) || 0;
+      item.weight = Number(item.weight) || 0;
+      if (!item.bin || item.slot < 1 || item.status === "Shipped") {
+        item.bin = "";
+        item.slot = 0;
+      }
       // Older Vinted bumps were a percent; keep their cost as a typed-in dollar amount.
       if (item.bumpAmount === undefined) {
         const config = PLATFORMS[item.site];
@@ -466,7 +595,7 @@
       }
     }
     items.forEach(migrateItem);
- 
+
     const form = document.getElementById("item-form");
     const addItemButton = document.getElementById("add-item-button");
     const importButton = document.getElementById("import-button");
@@ -478,6 +607,9 @@
     const cancelButton = document.getElementById("cancel-edit");
     const siteInput = document.getElementById("site");
     const statusInput = document.getElementById("status");
+    const binInput = document.getElementById("bin");
+    const slotInput = document.getElementById("slot");
+    const weightInput = document.getElementById("weight");
     const originalInput = document.getElementById("original");
     const currentInput = document.getElementById("current");
     const soldForInput = document.getElementById("sold-for");
@@ -495,12 +627,13 @@
     const addGoalButton = document.getElementById("add-goal-button");
     const balancesBox = document.getElementById("balances");
     const goalsBox = document.getElementById("goals-box");
- 
+
     function save() {
       try {
         localStorage.setItem("items", JSON.stringify(items));
         localStorage.setItem("goals", JSON.stringify(goals));
         localStorage.setItem("balances", JSON.stringify(balances));
+        localStorage.setItem("bins", JSON.stringify(bins));
         localStorage.setItem("filter", filter);
         localStorage.setItem("statusFilter", statusFilter);
         localStorage.setItem("remindDays", String(remindDays));
@@ -508,11 +641,15 @@
         alert("Your browser is full, so the latest change could not be saved. Export a CSV and remove some pictures or old items.");
       }
     }
- 
+
     function money(n) {
       return (n < 0 ? "-" : "") + "$" + Math.abs(n).toFixed(2);
     }
- 
+
+    function formatWeight(w) {
+      return String(Math.round(w * 10) / 10) + " oz";
+    }
+
     // Small helper to build a page element.
     function el(tag, className, text) {
       const node = document.createElement(tag);
@@ -520,7 +657,7 @@
       if (text !== undefined) node.textContent = text;
       return node;
     }
- 
+
     // ---- photo checklist ----
     const photoBoxes = document.getElementById("photo-boxes");
     PHOTO_TYPES.forEach(function (type) {
@@ -533,26 +670,26 @@
       label.appendChild(document.createTextNode(type.label));
       photoBoxes.appendChild(label);
     });
- 
+
     const photosAll = document.getElementById("photos-all");
     const photoDetails = document.getElementById("photo-details");
- 
+
     function setAllPhotoBoxes(value) {
       PHOTO_TYPES.forEach(function (type) {
         document.getElementById("photo-" + type.key).checked = value;
       });
     }
- 
+
     // One tick means every photo is done. Leave it unticked to choose which ones are taken.
     function updatePhotoUI() {
       photoDetails.style.display = photosAll.checked ? "none" : "block";
     }
- 
+
     photosAll.addEventListener("change", function () {
       setAllPhotoBoxes(photosAll.checked);
       updatePhotoUI();
     });
- 
+
     function photoCount(item) {
       let count = 0;
       PHOTO_TYPES.forEach(function (type) {
@@ -560,12 +697,17 @@
       });
       return count;
     }
- 
+
     // ---- prices and profit ----
     function salePrice(item) {
       return item.soldFor !== null && item.soldFor !== undefined ? item.soldFor : item.current;
     }
- 
+
+    // Sold and Shipped items both count toward your profit.
+    function isDone(item) {
+      return item.status === "Sold" || item.status === "Shipped";
+    }
+
     // Depop bumps cost a set percent of the current price. Vinted bumps use the dollar amount you typed.
     function feeTotal(item) {
       if (!item.bump) return 0;
@@ -573,21 +715,103 @@
       if (config && config.bumpPercent) return Math.round(item.current * config.bumpPercent) / 100;
       return item.bumpAmount || 0;
     }
- 
+
     function profitOf(item) {
       return salePrice(item) - feeTotal(item);
     }
- 
+
     // The current price as typed in the form (the original price if the current box is empty).
     function formCurrent() {
       if (currentInput.value !== "") return Number(currentInput.value) || 0;
       return Number(originalInput.value) || 0;
     }
- 
+
     function updateSoldForUI() {
-      soldForRow.style.display = statusInput.value === "Sold" ? "block" : "none";
+      const s = statusInput.value;
+      soldForRow.style.display = s === "Sold" || s === "Shipped" ? "block" : "none";
     }
- 
+
+    // ---- bins and slots ----
+    // A slot is taken when an item has that bin and slot number and has not been shipped yet.
+    // There is no separate list of slots to keep in sync, so the counts can't drift.
+    function findBin(name) {
+      const wanted = String(name || "").trim().toLowerCase();
+      for (let i = 0; i < bins.length; i++) {
+        if (bins[i].name.toLowerCase() === wanted) return bins[i];
+      }
+      return null;
+    }
+
+    function itemInSlot(binName, slot) {
+      for (let i = 0; i < items.length; i++) {
+        const it = items[i];
+        if (it.bin === binName && it.slot === slot && it.status !== "Shipped") return i;
+      }
+      return -1;
+    }
+
+    function binUsed(bin) {
+      return items.filter(function (it) { return it.bin === bin.name && it.slot > 0 && it.status !== "Shipped"; }).length;
+    }
+
+    // The label you read on the shelf, like A-03.
+    function slotLabel(binName, slot) {
+      return binName + "-" + (slot < 10 ? "0" : "") + slot;
+    }
+
+    function fillOptions(select, options) {
+      const keep = select.value;
+      select.innerHTML = "";
+      options.forEach(function (o) {
+        const option = document.createElement("option");
+        option.value = o.value;
+        option.textContent = o.text;
+        if (o.disabled) option.disabled = true;
+        select.appendChild(option);
+      });
+      select.value = keep;
+      if (select.value !== keep) select.value = "";
+    }
+
+    function refreshBinOptions() {
+      const options = [{ value: "", text: "No bin" }];
+      bins.forEach(function (b) { options.push({ value: b.name, text: b.name }); });
+      fillOptions(binInput, options);
+    }
+
+    // The slot box lists the slots of the chosen bin. Slots taken by other items are greyed out.
+    function refreshSlotOptions() {
+      const options = [{ value: "", text: "No slot" }];
+      const bin = findBin(binInput.value);
+      if (bin) {
+        for (let n = 1; n <= bin.slots; n++) {
+          const idx = itemInSlot(bin.name, n);
+          const taken = idx !== -1 && idx !== editingIndex;
+          options.push({ value: String(n), text: taken ? n + " (taken: " + items[idx].name + ")" : String(n), disabled: taken });
+        }
+      }
+      fillOptions(slotInput, options);
+    }
+
+    // A shipped item has left its slot, so the bin and slot boxes are hidden.
+    function updateSlotUI() {
+      document.getElementById("slot-fields").style.display = statusInput.value === "Shipped" ? "none" : "";
+    }
+
+    function markShipped(item) {
+      const spot = item.bin && item.slot ? slotLabel(item.bin, item.slot) : "";
+      const question = "Mark " + item.name + " as shipped?" + (spot ? " That frees slot " + spot + "." : "");
+      if (!confirm(question)) return false;
+      item.status = "Shipped";
+      item.bin = "";
+      item.slot = 0;
+      save();
+      render();
+      return true;
+    }
+
+    binInput.addEventListener("change", refreshSlotOptions);
+
     // ---- bump options that change with the platform ----
     function updateBumpUI(clearAmount) {
       const config = PLATFORMS[siteInput.value];
@@ -603,41 +827,41 @@
         bumpNote.textContent = "";
       }
     }
- 
+
     siteInput.addEventListener("change", function () { updateBumpUI(true); });
-    statusInput.addEventListener("change", function () { updateSoldForUI(); updateBumpUI(false); });
+    statusInput.addEventListener("change", function () { updateSoldForUI(); updateSlotUI(); updateBumpUI(false); });
     bumpInput.addEventListener("change", function () { updateBumpUI(false); });
     originalInput.addEventListener("input", function () { updateBumpUI(false); });
     currentInput.addEventListener("input", function () { updateBumpUI(false); });
- 
+
     // ---- date helpers ----
     function pad(n) {
       return String(n).padStart(2, "0");
     }
- 
+
     function todayText() {
       const now = new Date();
       return now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
     }
- 
+
     function parseDate(text) {
       const p = text.split("-");
       return Date.UTC(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
     }
- 
+
     function formatDate(ms) {
       return new Date(ms).toISOString().slice(0, 10);
     }
- 
+
     function dayDiff(fromText, toText) {
       return Math.round((parseDate(toText) - parseDate(fromText)) / 86400000);
     }
- 
+
     function daysToSell(item) {
       if (!item.posted || !item.sold) return null;
       return dayDiff(item.posted, item.sold);
     }
- 
+
     // Days a listed item has been at its current price (since the last price change, or since posting).
     function daysAtPrice(item) {
       if (item.status !== "Listed") return null;
@@ -645,22 +869,22 @@
       if (!start) return null;
       return Math.max(0, dayDiff(start, todayText()));
     }
- 
+
     function isDue(item) {
       const d = daysAtPrice(item);
       return d !== null && d >= remindDays;
     }
- 
+
     // ---- item picture (a small copy is saved with the item in your browser) ----
     const picPreview = document.getElementById("pic-preview");
     const picFile = document.getElementById("pic-file");
- 
+
     function setFormPhoto(dataUrl) {
       formPhoto = dataUrl || "";
       picPreview.src = formPhoto;
       picPreview.style.display = formPhoto ? "block" : "none";
     }
- 
+
     function loadImage(file) {
       return new Promise(function (resolve, reject) {
         const url = URL.createObjectURL(file);
@@ -670,7 +894,7 @@
         img.src = url;
       });
     }
- 
+
     // Copies the chosen part of the picture into a small JPEG so saving stays light.
     function makeThumb(img, box) {
       const scale = Math.min(1, 240 / box.w);
@@ -680,13 +904,13 @@
       canvas.getContext("2d").drawImage(img, box.x, box.y, box.w, box.h, 0, 0, canvas.width, canvas.height);
       return canvas.toDataURL("image/jpeg", 0.75);
     }
- 
+
     // Works out where the listing photo is inside the screenshot.
     // Vinted and Facebook: the photo ends above the title. Depop: the photo is a square that ends above the brand line.
     function listingPhotoBox(img, lines, found) {
       const W = img.naturalWidth;
       const H = img.naturalHeight;
- 
+
       if (found.layout === "depop") {
         let bottom = Math.round(H * 0.6);
         if (lines && found.titleLine) {
@@ -701,7 +925,7 @@
         const top = Math.max(0, bottom - W);
         return { x: 0, y: top, w: W, h: Math.max(60, bottom - top) };
       }
- 
+
       if (found.layout === "facebook") {
         // Facebook has a header bar (close, search, menu) above the photo, so the photo starts about a quarter of the way down.
         let bottom = Math.round(H * 0.575);
@@ -718,7 +942,7 @@
         const topFb = Math.min(Math.round(H * 0.112), bottom - 60);
         return { x: 0, y: Math.max(0, topFb), w: W, h: Math.max(60, bottom - Math.max(0, topFb)) };
       }
- 
+
       let bottom = Math.round(H * 0.6);
       if (lines && found.name) {
         const wanted = found.name.toLowerCase();
@@ -731,15 +955,15 @@
       }
       return { x: 0, y: 0, w: W, h: Math.min(bottom, H) };
     }
- 
+
     document.getElementById("pic-choose").addEventListener("click", function () {
       picFile.click();
     });
- 
+
     document.getElementById("pic-remove").addEventListener("click", function () {
       setFormPhoto("");
     });
- 
+
     picFile.addEventListener("change", function () {
       const file = picFile.files && picFile.files[0];
       if (!file) return;
@@ -752,25 +976,27 @@
         });
       picFile.value = "";
     });
- 
+
     // ---- show and hide the item form ----
     function showForm() {
       form.style.display = "block";
       addItemButton.textContent = "Close form";
     }
- 
+
     function closeForm() {
       editingIndex = null;
       form.reset();
       setFormPhoto("");
       updatePhotoUI();
       updateSoldForUI();
+      updateSlotUI();
+      refreshSlotOptions();
       updateBumpUI(true);
       submitButton.textContent = "Add item";
       form.style.display = "none";
       addItemButton.textContent = "+ Add item";
     }
- 
+
     addItemButton.addEventListener("click", function () {
       hideImportNote();
       if (form.style.display === "block") {
@@ -781,12 +1007,12 @@
         document.getElementById("name").focus();
       }
     });
- 
+
     cancelButton.addEventListener("click", function () {
       hideImportNote();
       closeForm();
     });
- 
+
     function startEdit(index) {
       const item = items[index];
       hideImportNote();
@@ -794,6 +1020,10 @@
       document.getElementById("name").value = item.name;
       siteInput.value = item.site;
       statusInput.value = item.status;
+      binInput.value = item.bin || "";
+      refreshSlotOptions();
+      slotInput.value = item.slot ? String(item.slot) : "";
+      weightInput.value = item.weight ? item.weight : "";
       PHOTO_TYPES.forEach(function (type) {
         document.getElementById("photo-" + type.key).checked = !!(item.photos && item.photos[type.key]);
       });
@@ -808,15 +1038,28 @@
       bumpInput.checked = !!item.bump;
       bumpAmountInput.value = item.bumpAmount ? item.bumpAmount : "";
       updateSoldForUI();
+      updateSlotUI();
       updateBumpUI(false);
       submitButton.textContent = "Save changes";
       showForm();
       form.scrollIntoView({ behavior: "smooth", block: "start" });
     }
- 
+
+    // Opens a blank item form with the bin and slot already chosen (used when you scan an empty slot).
+    function startNewItemIn(binName, slot) {
+      hideImportNote();
+      closeForm();
+      binInput.value = binName;
+      refreshSlotOptions();
+      slotInput.value = String(slot);
+      showForm();
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("name").focus();
+    }
+
     // ---- import a listing from a screenshot ----
     // The screenshot is read inside your browser and is never uploaded or saved.
- 
+
     // Turns the text read from a screenshot into { name, price, site }. Nothing is saved here;
     // the results only fill in the form so you can check them first.
     function parseListing(text, extraText) {
@@ -828,7 +1071,7 @@
       const moneyPattern = /\$\s*(\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d+(?:\.\d{1,2})?)/;
       // Lines that show what the BUYER pays (price plus protection fee) are skipped.
       const buyerPattern = /incl|buyer|subtotal|protection|shipping|postage/i;
- 
+
       // Finds the first price in a list of lines.
       function findPrice(list) {
         for (let i = 0; i < list.length; i++) {
@@ -844,7 +1087,7 @@
         }
         return { price: null, index: -1 };
       }
- 
+
       // Depop shows the brand and category in capitals (JUICY COUTURE . HOODIES). Turn that into a name.
       function cleanDepopTitle(line) {
         let words = line.split(/\s+/).filter(Boolean);
@@ -858,7 +1101,7 @@
           return w.indexOf("&") !== -1 ? w : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
         }).join(" ");
       }
- 
+
       const isDepop = /depop/i.test(text);
       // Facebook Marketplace screenshots don't always say "Facebook", so also look for its own wording.
       const isFacebook = !isDepop && !/vinted|buyer protection|subtotal for buyer/i.test(text) &&
@@ -868,7 +1111,7 @@
       let name = "";
       let titleLine = "";
       let facebookSold = false;
- 
+
       if (isDepop) {
         // The price sits in the bar at the bottom (next to Edit and Manage), read in a second pass.
         price = findPrice(extraLines).price;
@@ -927,19 +1170,19 @@
           }
         }
       }
- 
+
       let site = "";
       if (isDepop) site = "Depop";
       else if (/vinted|buyer protection|subtotal for buyer/i.test(text)) site = "Vinted";
       else if (isFacebook) site = "Facebook";
- 
+
       // A "Sold" banner (Vinted) or grey "Sold" button (Depop) on its own line means the item is sold.
       const soldLine = /^[^A-Za-z]{0,3}sold[^A-Za-z]{0,3}$/i;
       const sold = facebookSold || lines.concat(extraLines).some(function (l) { return soldLine.test(l); });
- 
+
       return { name: name, price: price, originalPrice: originalPrice, site: site, sold: sold, layout: isDepop ? "depop" : (isFacebook ? "facebook" : ""), titleLine: titleLine };
     }
- 
+
     // Depop puts the price in a grey bar at the bottom that the reader skips on a normal pass.
     // This looks at the bottom of the screenshot again, enlarged, in "sparse text" mode.
     function readBottomOfScreenshot(Tesseract, file) {
@@ -952,7 +1195,7 @@
           canvas.height = (img.naturalHeight - top) * 2;
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, top, img.naturalWidth, img.naturalHeight - top, 0, 0, canvas.width, canvas.height);
- 
+
           // Grey and stretch the contrast so the small price stands out.
           const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const px = data.data;
@@ -970,7 +1213,7 @@
             px[i] = px[i + 1] = px[i + 2] = g;
           }
           ctx.putImageData(data, 0, 0);
- 
+
           return Tesseract.createWorker("eng").then(function (worker) {
             return worker.setParameters({ tessedit_pageseg_mode: "11" })
               .then(function () { return worker.recognize(canvas); })
@@ -1023,50 +1266,57 @@
         })
         .catch(function () { return ""; });
     }
- 
-    let ocrLoading = null;
-    function loadOcr() {
-      if (window.Tesseract) return Promise.resolve(window.Tesseract);
-      if (!ocrLoading) {
-        ocrLoading = new Promise(function (resolve, reject) {
+
+    // Loads an outside script the first time it is needed (the screenshot reader, the QR maker).
+    const scriptLoads = {};
+    function loadScript(url, globalName) {
+      if (window[globalName]) return Promise.resolve(window[globalName]);
+      if (!scriptLoads[url]) {
+        scriptLoads[url] = new Promise(function (resolve, reject) {
           const script = document.createElement("script");
-          script.src = OCR_SCRIPT;
-          script.onload = function () { resolve(window.Tesseract); };
+          script.src = url;
+          script.onload = function () { resolve(window[globalName]); };
           script.onerror = function () {
-            ocrLoading = null;
-            reject(new Error("The screenshot reader could not be loaded."));
+            scriptLoads[url] = null;
+            reject(new Error("A helper script could not be loaded."));
           };
           document.head.appendChild(script);
         });
       }
-      return ocrLoading;
+      return scriptLoads[url];
     }
- 
+
+    function loadOcr() {
+      return loadScript(OCR_SCRIPT, "Tesseract").catch(function () {
+        throw new Error("The screenshot reader could not be loaded.");
+      });
+    }
+
     function showImportNote(text, isWarning) {
       importNote.textContent = text;
       importNote.className = isWarning ? "warn" : "";
       importNote.style.display = "block";
     }
- 
+
     function hideImportNote() {
       importNote.style.display = "none";
       importNote.textContent = "";
       importRaw.style.display = "none";
       importRaw.open = false;
     }
- 
+
     importButton.addEventListener("click", function () {
       importFile.click();
     });
- 
+
     importFile.addEventListener("change", function () {
       const file = importFile.files && importFile.files[0];
       if (!file) return;
- 
+
       importButton.disabled = true;
       importRaw.style.display = "none";
       showImportNote("Loading the screenshot reader...", false);
- 
+
       let firstResult = null;
       loadOcr()
         .then(function (Tesseract) {
@@ -1096,10 +1346,10 @@
           importFile.value = "";
         });
     });
- 
+
     function fillFormFromListing(text, file, lines, extraText) {
       const found = parseListing(text, extraText);
- 
+
       closeForm();
       document.getElementById("name").value = found.name;
       if (found.site) siteInput.value = found.site;
@@ -1114,15 +1364,16 @@
         currentInput.value = found.price;
       }
       updateSoldForUI();
+      updateSlotUI();
       if (found.sold && found.price !== null) soldForInput.value = found.price;
       updateBumpUI(true);
       showForm();
       form.scrollIntoView({ behavior: "smooth", block: "start" });
- 
+
       const missing = [];
       if (!found.name) missing.push("the item name");
       if (found.price === null) missing.push("the price");
- 
+
       let message;
       if (missing.length === 2) {
         message = "I couldn't read the name or the price. Try a clearer screenshot, or fill them in below.";
@@ -1131,7 +1382,7 @@
       } else {
         message = "Read from your screenshot. Please check the name and price, and change the date posted if it wasn't today, then press Add item." + (found.sold ? " It says Sold, so I set the status to Sold with the sale price filled in." : "") + " All photos are marked as taken; untick that box if you still need some.";
       }
- 
+
       const lowerName = found.name.toLowerCase();
       const duplicate = lowerName !== "" && items.some(function (item) {
         return item.name.toLowerCase() === lowerName && item.site === siteInput.value;
@@ -1140,12 +1391,12 @@
       if (!found.site) message += " I couldn't tell which site this is from, so check the Site box.";
       if (found.layout === "depop" && found.name) message += " Depop listings have no title, so I used the brand and category as the name. Rename it if you like.";
       if (found.layout === "facebook" && found.originalPrice !== null && found.price !== null && found.originalPrice > found.price) message += " I used the crossed-out price (" + money(found.originalPrice) + ") as the original price.";
- 
+
       showImportNote(message, missing.length > 0 || duplicate);
       importRawText.textContent = (text.trim() || "(nothing was read)") +
         (extraText && extraText.trim() ? "\n\n--- bottom of the screenshot ---\n" + extraText.trim() : "");
       importRaw.style.display = "block";
- 
+
       // Crop the listing photo out of the screenshot and keep it for the list.
       if (!file) return Promise.resolve();
       return loadImage(file)
@@ -1156,7 +1407,7 @@
           showImportNote(importNote.textContent + " I couldn't keep a picture from it, but you can press Choose picture.", true);
         });
     }
- 
+
     // ---- starting balances (typed by you) ----
     PLATFORM_NAMES.forEach(function (name) {
       const input = document.getElementById("start-" + name);
@@ -1167,7 +1418,7 @@
         render();
       });
     });
- 
+
     // ---- the two dropdowns in the top box ----
     // Clicking outside one closes it (so only one stays open), and Escape closes both.
     // composedPath() is used because buttons inside a panel get rebuilt when the page redraws.
@@ -1183,7 +1434,7 @@
         dropdowns.forEach(function (box) { box.open = false; });
       }
     });
- 
+
     // ---- filters and reminder setting ----
     filterInput.value = filter;
     filterInput.addEventListener("change", function () {
@@ -1191,14 +1442,14 @@
       save();
       render();
     });
- 
+
     statusFilterInput.value = statusFilter;
     statusFilterInput.addEventListener("change", function () {
       statusFilter = statusFilterInput.value;
       save();
       render();
     });
- 
+
     remindInput.value = remindDays;
     remindInput.addEventListener("input", function () {
       const n = Number(remindInput.value);
@@ -1208,17 +1459,17 @@
         render();
       }
     });
- 
+
     // ---- lower price pop-up: 10% or 15% off suggestions, or type your own ----
     const priceModal = document.getElementById("price-modal");
     const priceCustom = document.getElementById("price-custom");
     let priceTarget = null;
- 
+
     function closePriceModal() {
       priceModal.hidden = true;
       priceTarget = null;
     }
- 
+
     function setPrice(item, value) {
       if (value !== item.current) {
         item.current = value;
@@ -1228,12 +1479,12 @@
       }
       closePriceModal();
     }
- 
+
     function lowerPrice(item) {
       priceTarget = item;
       document.getElementById("price-modal-title").textContent = item.name;
       document.getElementById("price-modal-now").textContent = "Now " + money(item.current);
- 
+
       const box = document.getElementById("price-suggestions");
       box.innerHTML = "";
       [10, 15].forEach(function (percent) {
@@ -1248,11 +1499,11 @@
         button.onclick = function () { setPrice(item, value); };
         box.appendChild(button);
       });
- 
+
       priceCustom.value = "";
       priceModal.hidden = false;
     }
- 
+
     document.getElementById("price-set").addEventListener("click", function () {
       if (!priceTarget) return;
       const text = priceCustom.value.trim();
@@ -1267,7 +1518,7 @@
       }
       setPrice(priceTarget, value);
     });
- 
+
     document.getElementById("price-cancel").addEventListener("click", closePriceModal);
     priceModal.addEventListener("click", function (event) {
       if (event.target === priceModal) closePriceModal();
@@ -1275,7 +1526,386 @@
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && !priceModal.hidden) closePriceModal();
     });
- 
+
+    // ---- bin and slot screens (what you see after scanning a QR code) ----
+    const scanModal = document.getElementById("scan-modal");
+    const scanBody = document.getElementById("scan-body");
+
+    function closeScanModal() {
+      scanModal.hidden = true;
+      scanBody.innerHTML = "";
+    }
+
+    function modalButton(text, className, onClick) {
+      const button = el("button", "block" + (className ? " " + className : ""), text);
+      button.type = "button";
+      button.onclick = onClick;
+      return button;
+    }
+
+    scanModal.addEventListener("click", function (event) {
+      if (event.target === scanModal) closeScanModal();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !scanModal.hidden) closeScanModal();
+    });
+
+    // One slot: empty (add an item) or full (see the item, edit it, mark it shipped).
+    function openSlotView(bin, n) {
+      scanBody.innerHTML = "";
+      scanBody.appendChild(el("h3", "", "Slot " + slotLabel(bin.name, n)));
+      scanBody.appendChild(el("div", "small", "Bin " + bin.name + " \u00B7 slot " + n + " of " + bin.slots));
+
+      const index = itemInSlot(bin.name, n);
+      if (index === -1) {
+        scanBody.appendChild(el("div", "slot-item-name", "This slot is empty."));
+        scanBody.appendChild(modalButton("Add item to this slot", "primary", function () {
+          closeScanModal();
+          startNewItemIn(bin.name, n);
+        }));
+      } else {
+        const item = items[index];
+        scanBody.appendChild(el("div", "slot-item-name", item.name));
+        let detail = item.site + " \u00B7 " + item.status + " \u00B7 " + money(salePrice(item));
+        if (item.weight > 0) detail += " \u00B7 " + formatWeight(item.weight);
+        scanBody.appendChild(el("div", "small", detail));
+        if (item.status === "Sold") {
+          scanBody.appendChild(modalButton("Mark shipped (frees this slot)", "primary", function () {
+            if (markShipped(item)) closeScanModal();
+          }));
+        } else {
+          scanBody.appendChild(el("div", "small", "When it sells, set it to Sold. Then you can mark it shipped here."));
+        }
+        scanBody.appendChild(modalButton("Edit item", "", function () {
+          closeScanModal();
+          startEdit(index);
+        }));
+      }
+      scanBody.appendChild(modalButton("See all of bin " + bin.name, "", function () { openBinView(bin); }));
+      scanBody.appendChild(modalButton("Close", "", closeScanModal));
+      scanModal.hidden = false;
+    }
+
+    // One bin: every slot with what is in it.
+    function openBinView(bin) {
+      scanBody.innerHTML = "";
+      scanBody.appendChild(el("h3", "", "Bin " + bin.name));
+      const used = binUsed(bin);
+      const waiting = items.filter(function (it) { return it.bin === bin.name && it.status === "Sold"; }).length;
+      let summary = used + "/" + bin.slots + " slots used";
+      if (waiting > 0) summary += " \u00B7 " + waiting + " sold, waiting to ship";
+      scanBody.appendChild(el("div", "small", summary));
+
+      const list = el("div", "slot-list");
+      for (let n = 1; n <= bin.slots; n++) {
+        const idx = itemInSlot(bin.name, n);
+        const item = idx === -1 ? null : items[idx];
+        const row = el("button", "slot-btn " + (item ? (item.status === "Sold" ? "sold" : "full") : "empty"));
+        row.type = "button";
+        row.appendChild(el("span", "slot-code", slotLabel(bin.name, n)));
+        row.appendChild(el("span", "slot-name", item ? item.name : "Empty"));
+        if (item) row.appendChild(el("span", "slot-status", item.status));
+        row.onclick = function () { openSlotView(bin, n); };
+        list.appendChild(row);
+      }
+      scanBody.appendChild(list);
+      scanBody.appendChild(modalButton("Close", "", closeScanModal));
+      scanModal.hidden = false;
+    }
+
+    function openScanMessage(title, text) {
+      scanBody.innerHTML = "";
+      scanBody.appendChild(el("h3", "", title));
+      scanBody.appendChild(el("p", "", text));
+      scanBody.appendChild(modalButton("Close", "primary", closeScanModal));
+      scanModal.hidden = false;
+    }
+
+    // A QR code opens the app with ?bin=A&slot=3 (or just ?bin=A for the whole bin).
+    function handleScanLink() {
+      let params;
+      try {
+        params = new URLSearchParams(window.location.search);
+      } catch (e) {
+        return;
+      }
+      const binParam = params.get("bin");
+      if (binParam === null) return;
+      const slotParam = params.get("slot");
+      // Take the scan details out of the address so refreshing the page doesn't reopen this screen.
+      try { history.replaceState(null, "", window.location.pathname + window.location.hash); } catch (e) {}
+
+      const bin = findBin(binParam);
+      if (!bin) {
+        openScanMessage("Bin " + binParam.toUpperCase() + " isn't set up here",
+          "Add it under Bins and slots. If you expected to see items, this may be a different browser or device than the one that holds your data.");
+        return;
+      }
+      if (slotParam === null || slotParam === "") {
+        openBinView(bin);
+        return;
+      }
+      const n = Number(slotParam);
+      if (!(n >= 1 && n <= bin.slots && Math.floor(n) === n)) {
+        openScanMessage("Slot " + slotParam + " doesn't exist", "Bin " + bin.name + " has " + bin.slots + " slots. You can change that under Bins and slots.");
+        return;
+      }
+      openSlotView(bin, n);
+    }
+
+    // ---- bins and slots panel ----
+    let editingBin = null;
+    const binForm = document.getElementById("bin-form");
+    const addBinButton = document.getElementById("add-bin-button");
+
+    addBinButton.addEventListener("click", function () {
+      if (binForm.style.display === "block") {
+        binForm.style.display = "none";
+        binForm.reset();
+        addBinButton.textContent = "+ Add bin";
+      } else {
+        binForm.style.display = "block";
+        addBinButton.textContent = "Close form";
+        document.getElementById("bin-name").focus();
+      }
+    });
+
+    binForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const name = document.getElementById("bin-name").value.trim().toUpperCase();
+      const slots = Math.floor(Number(document.getElementById("bin-slots").value));
+      if (name === "") {
+        alert("Please give the bin a name.");
+        return;
+      }
+      if (findBin(name)) {
+        alert("You already have a bin named " + name + ".");
+        return;
+      }
+      if (!(slots >= 1 && slots <= MAX_SLOTS)) {
+        alert("Slots must be a number from 1 to " + MAX_SLOTS + ".");
+        return;
+      }
+      bins.push({ name: name, slots: slots });
+      save();
+      render();
+      binForm.reset();
+      binForm.style.display = "none";
+      addBinButton.textContent = "+ Add bin";
+    });
+
+    function buildBinEditor(bin, used) {
+      const editor = el("form", "goal-row editing");
+      editor.appendChild(el("div", "bin-name", "Bin " + bin.name));
+
+      const label = el("label", "field", "Number of slots");
+      const input = document.createElement("input");
+      input.type = "number";
+      input.setAttribute("inputmode", "numeric");
+      input.step = "1";
+      input.min = "1";
+      input.max = String(MAX_SLOTS);
+      input.value = bin.slots;
+      input.required = true;
+      label.appendChild(input);
+      editor.appendChild(label);
+      editor.appendChild(el("div", "small", "Adding slots keeps your existing labels working. Print labels for the new ones. A bin can't shrink while the slots you'd remove still hold items."));
+
+      const buttons = el("div", "form-actions");
+      const saveBtn = el("button", "primary", "Save");
+      saveBtn.type = "submit";
+      const cancel = el("button", "", "Cancel");
+      cancel.type = "button";
+      cancel.onclick = function () {
+        editingBin = null;
+        renderBins();
+      };
+      buttons.appendChild(saveBtn);
+      buttons.appendChild(cancel);
+      editor.appendChild(buttons);
+
+      const remove = el("button", "danger block", "Delete bin");
+      remove.type = "button";
+      remove.style.width = "100%";
+      remove.style.marginTop = "10px";
+      remove.onclick = function () {
+        if (used > 0) {
+          alert("Bin " + bin.name + " still holds " + used + (used === 1 ? " item" : " items") + ". Ship or move them first.");
+          return;
+        }
+        if (!confirm("Delete bin " + bin.name + "? Its printed labels will stop working.")) return;
+        bins.splice(bins.indexOf(bin), 1);
+        editingBin = null;
+        save();
+        render();
+      };
+      editor.appendChild(remove);
+
+      editor.onsubmit = function (event) {
+        event.preventDefault();
+        const n = Math.floor(Number(input.value));
+        if (!(n >= 1 && n <= MAX_SLOTS)) {
+          alert("Slots must be a number from 1 to " + MAX_SLOTS + ".");
+          return;
+        }
+        if (n < bin.slots) {
+          for (let s = n + 1; s <= bin.slots; s++) {
+            const idx = itemInSlot(bin.name, s);
+            if (idx !== -1) {
+              alert("Slot " + slotLabel(bin.name, s) + " still holds " + items[idx].name + ". Ship or move it first, then shrink the bin.");
+              return;
+            }
+          }
+        }
+        bin.slots = n;
+        editingBin = null;
+        save();
+        render();
+      };
+      return editor;
+    }
+
+    function renderBins() {
+      const box = document.getElementById("bins-list");
+      box.innerHTML = "";
+      let usedAll = 0;
+      let totalAll = 0;
+
+      bins.forEach(function (bin) {
+        const used = binUsed(bin);
+        usedAll += used;
+        totalAll += bin.slots;
+
+        if (editingBin === bin) {
+          box.appendChild(buildBinEditor(bin, used));
+          return;
+        }
+
+        const row = el("div", "bin-row");
+        const head = el("div", "bin-head");
+        head.appendChild(el("span", "bin-name", "Bin " + bin.name));
+        head.appendChild(el("span", "bin-count", used + "/" + bin.slots + " slots used"));
+        row.appendChild(head);
+
+        const bar = document.createElement("progress");
+        bar.max = bin.slots;
+        bar.value = used;
+        row.appendChild(bar);
+
+        const actions = el("div", "bin-actions");
+        const view = el("button", "", "See items");
+        view.type = "button";
+        view.onclick = function () { openBinView(bin); };
+        actions.appendChild(view);
+        const labels = el("button", "", "Print labels");
+        labels.type = "button";
+        labels.onclick = function () { openLabels(bin); };
+        actions.appendChild(labels);
+        const edit = el("button", "", "Edit");
+        edit.type = "button";
+        edit.onclick = function () {
+          editingBin = bin;
+          renderBins();
+        };
+        actions.appendChild(edit);
+        row.appendChild(actions);
+        box.appendChild(row);
+      });
+
+      if (bins.length === 0) box.appendChild(el("div", "small", "No bins yet. Add one below."));
+      document.getElementById("bins-summary").textContent =
+        "Bins and slots" + (totalAll > 0 ? " \u00B7 " + usedAll + "/" + totalAll + " used" : "");
+    }
+
+    // ---- printable labels: a QR code plus big readable text, one per slot ----
+    const labelsOverlay = document.getElementById("labels-overlay");
+    const labelsGrid = document.getElementById("labels-grid");
+    const labelsNote = document.getElementById("labels-note");
+
+    // The address of this app without any scan details, like https://name.github.io/repo/
+    function appAddress() {
+      return window.location.origin + window.location.pathname.replace(/index\.html$/, "");
+    }
+
+    // Draws a QR code as a small SVG picture.
+    function qrSvg(text) {
+      const qr = window.qrcode(0, "M");
+      qr.addData(text);
+      qr.make();
+      const count = qr.getModuleCount();
+      const quiet = 2;
+      const size = count + quiet * 2;
+      let path = "";
+      for (let r = 0; r < count; r++) {
+        for (let c = 0; c < count; c++) {
+          if (qr.isDark(r, c)) path += "M" + (c + quiet) + " " + (r + quiet) + "h1v1h-1z";
+        }
+      }
+      const ns = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(ns, "svg");
+      svg.setAttribute("viewBox", "0 0 " + size + " " + size);
+      svg.setAttribute("shape-rendering", "crispEdges");
+      const bg = document.createElementNS(ns, "rect");
+      bg.setAttribute("width", size);
+      bg.setAttribute("height", size);
+      bg.setAttribute("fill", "#ffffff");
+      svg.appendChild(bg);
+      const dots = document.createElementNS(ns, "path");
+      dots.setAttribute("d", path);
+      dots.setAttribute("fill", "#000000");
+      svg.appendChild(dots);
+      return svg;
+    }
+
+    function buildLabel(url, code, sub) {
+      const box = el("div", "label");
+      box.appendChild(qrSvg(url));
+      box.appendChild(el("div", "label-code", code));
+      box.appendChild(el("div", "label-sub", sub));
+      return box;
+    }
+
+    function openLabels(bin) {
+      document.getElementById("labels-title").textContent = "Labels for bin " + bin.name;
+      const address = appAddress();
+      const live = /^https?:$/.test(window.location.protocol);
+      labelsNote.textContent = live
+        ? "These codes open: " + address + "  (check this is your live site address)"
+        : "Open the app from your live website address before printing. These codes won't work from here.";
+      labelsNote.className = "small" + (live ? "" : " warn");
+      labelsGrid.textContent = "Making labels...";
+      labelsOverlay.hidden = false;
+      labelsOverlay.scrollTop = 0;
+
+      loadScript(QR_SCRIPT, "qrcode")
+        .then(function () {
+          labelsGrid.innerHTML = "";
+          const base = address + "?bin=" + encodeURIComponent(bin.name);
+          labelsGrid.appendChild(buildLabel(base, "BIN " + bin.name, "Scan to see what's inside"));
+          for (let n = 1; n <= bin.slots; n++) {
+            labelsGrid.appendChild(buildLabel(base + "&slot=" + n, slotLabel(bin.name, n), "Bin " + bin.name + " \u00B7 slot " + n));
+          }
+        }, function () {
+          labelsGrid.textContent = "Sorry, the label maker could not be loaded. Check your internet connection and try again.";
+        })
+        .catch(function (err) {
+          labelsGrid.textContent = "Sorry, something went wrong while making the labels (" + err.message + ").";
+        });
+    }
+
+    function closeLabels() {
+      labelsOverlay.hidden = true;
+      labelsGrid.innerHTML = "";
+    }
+
+    document.getElementById("labels-print").addEventListener("click", function () {
+      window.print();
+    });
+    document.getElementById("labels-close").addEventListener("click", closeLabels);
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && !labelsOverlay.hidden) closeLabels();
+    });
+
     // ---- goals ----
     addGoalButton.addEventListener("click", function () {
       if (goalForm.style.display === "block") {
@@ -1288,14 +1918,14 @@
         document.getElementById("goal-name").focus();
       }
     });
- 
+
     // The overall bar adds up every goal still in progress.
     function renderOverall(balance, activeTotal, activeCount) {
       const mini = document.getElementById("goals-mini");
       const overall = document.getElementById("overall-box");
       const text = document.getElementById("overall-text");
       const hint = document.getElementById("priority-hint");
- 
+
       if (activeCount === 0) {
         mini.style.display = "none";
         overall.style.display = "none";
@@ -1303,27 +1933,27 @@
         text.textContent = "No goals in progress";
         return;
       }
- 
+
       const have = Math.max(0, Math.min(balance, activeTotal));
       const goalWord = activeCount === 1 ? "goal" : "goals";
- 
+
       mini.style.display = "block";
       document.getElementById("mini-bar").max = activeTotal;
       document.getElementById("mini-bar").value = have;
       document.getElementById("mini-text").textContent =
         money(have) + " of " + money(activeTotal) + " (" + activeCount + " " + goalWord + ")";
- 
+
       overall.style.display = "block";
       document.getElementById("overall-bar").max = activeTotal;
       document.getElementById("overall-bar").value = have;
       text.textContent = "All goals: " + money(have) + " of " + money(activeTotal);
       hint.style.display = activeCount > 1 ? "block" : "none";
     }
- 
+
     // Goals are listed in priority order: the first one gets your balance first, then the next, and so on.
     let openGoal = null;      // the goal whose buttons are showing
     let editingGoal = null;   // the goal being edited
- 
+
     // Swaps a goal with the next goal in progress above or below it (purchased goals are skipped).
     function moveGoal(goal, step) {
       const from = goals.indexOf(goal);
@@ -1335,7 +1965,7 @@
       save();
       render();
     }
- 
+
     function removeGoal(goal) {
       if (!confirm("Delete goal " + goal.name + "?")) return;
       goals.splice(goals.indexOf(goal), 1);
@@ -1344,17 +1974,17 @@
       save();
       render();
     }
- 
+
     function buildGoalEditor(goal) {
       const form = el("form", "goal-row editing");
- 
+
       const nameLabel = el("label", "field", "Goal name");
       const nameInput = document.createElement("input");
       nameInput.value = goal.name;
       nameInput.required = true;
       nameLabel.appendChild(nameInput);
       form.appendChild(nameLabel);
- 
+
       const amountLabel = el("label", "field", "Amount ($)");
       const amountInput = document.createElement("input");
       amountInput.type = "number";
@@ -1365,7 +1995,7 @@
       amountInput.required = true;
       amountLabel.appendChild(amountInput);
       form.appendChild(amountLabel);
- 
+
       const buttons = el("div", "form-actions");
       const saveBtn = el("button", "primary", "Save");
       saveBtn.type = "submit";
@@ -1378,7 +2008,7 @@
       buttons.appendChild(saveBtn);
       buttons.appendChild(cancel);
       form.appendChild(buttons);
- 
+
       form.onsubmit = function (event) {
         event.preventDefault();
         const newName = nameInput.value.trim();
@@ -1395,10 +2025,10 @@
       };
       return form;
     }
- 
+
     function buildActiveGoal(goal, rank, count, have, balance) {
       if (editingGoal === goal) return buildGoalEditor(goal);
- 
+
       const row = el("div", "goal-row");
       const head = el("div", "goal-head");
       head.appendChild(el("span", "rank", String(rank + 1)));
@@ -1411,15 +2041,15 @@
         render();
       };
       row.appendChild(head);
- 
+
       const bar = document.createElement("progress");
       bar.max = goal.amount;
       bar.value = have;
       row.appendChild(bar);
- 
+
       if (openGoal === goal) {
         const actions = el("div", "goal-actions");
- 
+
         const buy = el("button", "primary wide", "Mark purchased");
         buy.onclick = function () {
           if (goal.amount > balance) {
@@ -1431,50 +2061,50 @@
           render();
         };
         actions.appendChild(buy);
- 
+
         const edit = el("button", "", "Edit");
         edit.onclick = function () {
           editingGoal = goal;
           render();
         };
         actions.appendChild(edit);
- 
+
         const up = el("button", "", "\u2191 Up");
         up.disabled = rank === 0;
         up.onclick = function () { moveGoal(goal, -1); };
         actions.appendChild(up);
- 
+
         const down = el("button", "", "\u2193 Down");
         down.disabled = rank === count - 1;
         down.onclick = function () { moveGoal(goal, 1); };
         actions.appendChild(down);
- 
+
         const remove = el("button", "danger", "Delete");
         remove.onclick = function () { removeGoal(goal); };
         actions.appendChild(remove);
- 
+
         row.appendChild(actions);
       }
       return row;
     }
- 
+
     function renderGoals(balance) {
       const activeList = document.getElementById("goal-list");
       const doneList = document.getElementById("purchased-list");
       activeList.innerHTML = "";
       doneList.innerHTML = "";
- 
+
       const active = goals.filter(function (goal) { return !goal.purchased; });
       let remaining = Math.max(0, balance);
       let activeTotal = 0;
- 
+
       active.forEach(function (goal, rank) {
         const have = Math.min(remaining, goal.amount);
         remaining -= have;
         activeTotal += goal.amount;
         activeList.appendChild(buildActiveGoal(goal, rank, active.length, have, balance));
       });
- 
+
       let doneCount = 0;
       goals.forEach(function (goal) {
         if (!goal.purchased) return;
@@ -1493,14 +2123,14 @@
         row.appendChild(remove);
         doneList.appendChild(row);
       });
- 
+
       document.getElementById("purchased-goals").style.display = doneCount === 0 ? "none" : "block";
       document.getElementById("purchased-summary").textContent = "Purchased goals (" + doneCount + ")";
       renderOverall(balance, activeTotal, active.length);
     }
- 
+
     const expandedSold = new Set();
- 
+
     function render() {
       const list = document.getElementById("list");
       list.innerHTML = "";
@@ -1509,26 +2139,28 @@
       const dueNames = [];
       const itemByPlatform = {};
       PLATFORM_NAMES.forEach(function (name) { itemByPlatform[name] = 0; });
- 
+
       items.forEach(function (item, index) {
         // Totals and reminders always count every item, whatever the filters say.
-        const profit = item.status === "Sold" ? profitOf(item) : null;
+        const done = isDone(item);
+        const profit = done ? profitOf(item) : null;
         if (profit !== null) {
           itemTotal += profit;
           if (itemByPlatform[item.site] !== undefined) itemByPlatform[item.site] += profit;
         }
         if (isDue(item)) dueNames.push(item.name);
- 
+
         if (filter !== "All" && item.site !== filter) return;
         if (statusFilter !== "All" && item.status !== statusFilter) return;
         shown++;
- 
-        // Sold items shrink to name, site and profit unless you are filtering by Sold (tap one to open it).
-        if (item.status === "Sold" && statusFilter !== "Sold" && !expandedSold.has(item)) {
-          const mini = el("button", "sold-mini");
+
+        // Sold and shipped items shrink to name, site and profit unless you are filtering by that status (tap one to open it).
+        const showSmall = done && statusFilter !== item.status;
+        if (showSmall && !expandedSold.has(item)) {
+          const mini = el("button", "sold-mini" + (item.status === "Shipped" ? " shipped" : ""));
           mini.type = "button";
           mini.appendChild(el("span", "sold-name", item.name));
-          mini.appendChild(el("span", "sold-site", item.site));
+          mini.appendChild(el("span", "sold-site", item.site + (item.status === "Shipped" ? " \u00B7 Shipped" : "")));
           mini.appendChild(el("span", "sold-profit", money(profit)));
           mini.onclick = function () {
             expandedSold.add(item);
@@ -1537,10 +2169,10 @@
           list.appendChild(mini);
           return;
         }
- 
+
         const card = el("div", "card " + (STATUS_CLASS[item.status] || ""));
         const top = el("div", "card-top");
- 
+
         // Picture
         if (item.picture) {
           const pic = el("img", "thumb");
@@ -1550,12 +2182,17 @@
         } else {
           top.appendChild(el("div", "thumb empty", "No picture"));
         }
- 
+
         const main = el("div", "card-main");
         main.appendChild(el("div", "card-title", item.name));
- 
-        // Site, status and the photo checklist
+
+        // Site, status, slot and the photo checklist
         const meta = el("div", "card-meta", item.site + " · " + item.status);
+        if (item.bin && item.slot > 0 && item.status !== "Shipped") {
+          const slotBadge = el("span", "badge slot", slotLabel(item.bin, item.slot));
+          slotBadge.title = "Bin " + item.bin + ", slot " + item.slot;
+          meta.appendChild(slotBadge);
+        }
         const count = photoCount(item);
         if (count === PHOTO_TYPES.length) {
           const badge = el("span", "badge ok", "✓ Photos");
@@ -1567,10 +2204,11 @@
           meta.appendChild(badge);
         }
         main.appendChild(meta);
- 
+        if (item.weight > 0) main.appendChild(el("div", "small", "Weight " + formatWeight(item.weight)));
+
         // Price
         const priceBox = el("div", "card-price");
-        if (item.status === "Sold") {
+        if (done) {
           priceBox.textContent = "Sold " + money(salePrice(item));
           main.appendChild(priceBox);
           if (item.original !== salePrice(item)) {
@@ -1593,16 +2231,16 @@
         }
         top.appendChild(main);
         card.appendChild(top);
- 
+
         // Buttons
         const actions = el("div", "card-actions");
- 
+
         const editButton = el("button", "", "Edit");
         editButton.onclick = function () {
           startEdit(index);
         };
         actions.appendChild(editButton);
- 
+
         if (item.status === "Listed") {
           const lowerButton = el("button", "", "Lower price");
           lowerButton.onclick = function () {
@@ -1610,7 +2248,16 @@
           };
           actions.appendChild(lowerButton);
         }
- 
+
+        if (item.status === "Sold") {
+          const shipButton = el("button", "", "Shipped");
+          shipButton.title = "Mark as shipped and free its slot";
+          shipButton.onclick = function () {
+            markShipped(item);
+          };
+          actions.appendChild(shipButton);
+        }
+
         const deleteButton = el("button", "danger", "Delete");
         deleteButton.onclick = function () {
           if (confirm("Delete " + item.name + "?")) {
@@ -1621,8 +2268,8 @@
           }
         };
         actions.appendChild(deleteButton);
- 
-        if (item.status === "Sold" && statusFilter !== "Sold") {
+
+        if (showSmall) {
           const closeButton = el("button", "", "Collapse");
           closeButton.onclick = function () {
             expandedSold.delete(item);
@@ -1630,18 +2277,18 @@
           };
           actions.insertBefore(closeButton, actions.firstChild);
         }
- 
+
         card.appendChild(actions);
         list.appendChild(card);
       });
- 
+
       const parts = [];
       if (filter !== "All") parts.push(filter);
       if (statusFilter !== "All") parts.push(statusFilter);
       document.getElementById("filters-summary").textContent = "Filters" + (parts.length ? ": " + parts.join(" \u00B7 ") : "");
       document.getElementById("list-count").textContent =
         "Showing " + shown + " of " + items.length + " items" + (parts.length ? " (" + parts.join(", ") + ")" : "");
- 
+
       const banner = document.getElementById("reduce-banner");
       if (dueNames.length > 0) {
         banner.style.display = "block";
@@ -1650,7 +2297,7 @@
         banner.style.display = "none";
         banner.textContent = "";
       }
- 
+
       let startTotal = 0;
       PLATFORM_NAMES.forEach(function (name) {
         const start = balances[name] || 0;
@@ -1658,51 +2305,76 @@
         document.getElementById("item-" + name).textContent = money(itemByPlatform[name]);
         document.getElementById("sum-" + name).textContent = money(start + itemByPlatform[name]);
       });
- 
+
       const total = itemTotal + startTotal;
       document.getElementById("start-all").textContent = money(startTotal);
       document.getElementById("item-all").textContent = money(itemTotal);
       document.getElementById("sum-all").textContent = money(total);
- 
+
       let spent = 0;
       goals.forEach(function (goal) {
         if (goal.purchased) spent += goal.amount;
       });
       const balance = total - spent;
- 
+
       document.getElementById("total").textContent = total.toFixed(2);
       document.getElementById("balance").textContent = balance.toFixed(2);
       renderGoals(balance);
+      renderBins();
+      refreshBinOptions();
+      refreshSlotOptions();
     }
- 
+
     form.addEventListener("submit", function (event) {
       event.preventDefault();
- 
+
       if (postedInput.value && soldInput.value && dayDiff(postedInput.value, soldInput.value) < 0) {
         alert("The sold date can't be earlier than the posted date.");
         return;
       }
- 
+
+      const status = statusInput.value;
+
+      // Work out the bin and slot. A shipped item has left its slot. Two items can't share a slot.
+      let bin = "";
+      let slot = 0;
+      if (status !== "Shipped" && binInput.value !== "") {
+        const chosenSlot = Number(slotInput.value) || 0;
+        if (chosenSlot === 0) {
+          alert("Pick a slot in bin " + binInput.value + ", or set Bin to No bin.");
+          return;
+        }
+        const taken = itemInSlot(binInput.value, chosenSlot);
+        if (taken !== -1 && taken !== editingIndex) {
+          alert("Slot " + slotLabel(binInput.value, chosenSlot) + " already holds " + items[taken].name + ". Pick another slot.");
+          return;
+        }
+        bin = binInput.value;
+        slot = chosenSlot;
+      }
+
       const photos = {};
       PHOTO_TYPES.forEach(function (type) {
         photos[type.key] = document.getElementById("photo-" + type.key).checked;
       });
- 
+
       const original = Number(originalInput.value) || 0;
       const current = currentInput.value === "" ? original : Number(currentInput.value);
-      const status = statusInput.value;
-      const soldFor = status === "Sold" && soldForInput.value !== "" ? Number(soldForInput.value) : null;
- 
+      const soldFor = (status === "Sold" || status === "Shipped") && soldForInput.value !== "" ? Number(soldForInput.value) : null;
+
       let priceChanged = "";
       if (editingIndex !== null) {
         const old = items[editingIndex];
         priceChanged = current !== old.current ? todayText() : old.priceChanged;
       }
- 
+
       const item = {
         name: document.getElementById("name").value,
         site: siteInput.value,
         status: status,
+        bin: bin,
+        slot: slot,
+        weight: Number(weightInput.value) || 0,
         photos: photos,
         picture: formPhoto,
         posted: postedInput.value,
@@ -1724,7 +2396,7 @@
       save();
       render();
     });
- 
+
     goalForm.addEventListener("submit", function (event) {
       event.preventDefault();
       goals.push({
@@ -1738,22 +2410,22 @@
       goalForm.style.display = "none";
       addGoalButton.textContent = "+ Add goal";
     });
- 
+
     function csvCell(value) {
       let text = String(value);
       if (/^[=+\-@]/.test(text)) text = "'" + text;
       return '"' + text.replace(/"/g, '""') + '"';
     }
- 
+
     document.getElementById("export-button").addEventListener("click", function () {
-      const header = ["Item", "Site", "Status"];
+      const header = ["Item", "Site", "Status", "Bin", "Slot", "Weight (oz)"];
       PHOTO_TYPES.forEach(function (type) { header.push("Photo: " + type.label); });
       header.push("Date posted", "Date sold", "Days to sell", "Original price", "Current price", "Last price change", "Sold for", "Bumped", "Bump %", "Bump cost", "Profit");
       const rows = [header];
- 
+
       items.forEach(function (item) {
         const d = daysToSell(item);
-        const row = [item.name, item.site, item.status];
+        const row = [item.name, item.site, item.status, item.bin || "", item.slot || "", item.weight || ""];
         PHOTO_TYPES.forEach(function (type) {
           row.push(item.photos && item.photos[type.key] ? "Yes" : "No");
         });
@@ -1761,15 +2433,15 @@
           item.posted || "", item.sold || "", d === null ? "" : d,
           item.original.toFixed(2), item.current.toFixed(2),
           item.priceChanged || "",
-          item.status === "Sold" ? salePrice(item).toFixed(2) : "",
+          isDone(item) ? salePrice(item).toFixed(2) : "",
           item.bump ? "Yes" : "No",
           item.bump && PLATFORMS[item.site] && PLATFORMS[item.site].bumpPercent ? PLATFORMS[item.site].bumpPercent : "",
           feeTotal(item).toFixed(2),
-          item.status === "Sold" ? profitOf(item).toFixed(2) : ""
+          isDone(item) ? profitOf(item).toFixed(2) : ""
         );
         rows.push(row);
       });
- 
+
       const csv = rows.map(function (r) { return r.map(csvCell).join(","); }).join("\n");
       const blob = new Blob([csv], { type: "text/csv" });
       const link = document.createElement("a");
@@ -1777,44 +2449,45 @@
       link.download = "resale-items.csv";
       link.click();
     });
- 
+
     // ---- backup and restore ----
-    // A backup is one small file holding your items (with pictures), goals and balances.
+    // A backup is one small file holding your items (with pictures), goals, balances and bins.
     // Restoring replaces everything in this copy of the app with what is in the backup.
     const backupNote = document.getElementById("backup-note");
     const backupInfo = document.getElementById("backup-info");
     const backupText = document.getElementById("backup-text");
     const restoreFile = document.getElementById("restore-file");
- 
+
     function showBackupNote(text, isWarning) {
       backupNote.textContent = text;
       backupNote.className = isWarning ? "warn" : "";
       backupNote.style.display = "block";
     }
- 
+
     function updateBackupInfo() {
       let last = "";
       try { last = localStorage.getItem("lastBackup") || ""; } catch (e) {}
       backupInfo.textContent = last ? "Last backup saved on " + last + "." : "You haven't saved a backup from this app yet.";
     }
- 
+
     function markBackupSaved() {
       try { localStorage.setItem("lastBackup", todayText()); } catch (e) {}
       updateBackupInfo();
     }
- 
+
     function backupData() {
       return JSON.stringify({
         app: "resale-tracker",
-        version: 1,
+        version: 2,
         saved: new Date().toISOString(),
         items: items,
         goals: goals,
         balances: balances,
+        bins: bins,
         remindDays: remindDays
       });
     }
- 
+
     function downloadBackup(text, name) {
       const blob = new Blob([text], { type: "application/json" });
       const link = document.createElement("a");
@@ -1824,7 +2497,7 @@
       markBackupSaved();
       showBackupNote("Backup file saved. Look in your Downloads or the Files app.", false);
     }
- 
+
     document.getElementById("backup-save").addEventListener("click", function () {
       const text = backupData();
       const name = "resale-backup-" + todayText() + ".json";
@@ -1844,7 +2517,7 @@
         downloadBackup(text, name);
       }
     });
- 
+
     document.getElementById("backup-copy").addEventListener("click", function () {
       const text = backupData();
       backupText.value = text;
@@ -1865,7 +2538,7 @@
         fallback();
       }
     });
- 
+
     function restoreFromText(text) {
       let data = null;
       try { data = JSON.parse(text); } catch (e) {}
@@ -1877,15 +2550,19 @@
       const newGoals = data.goals
         .filter(function (g) { return g && typeof g === "object"; })
         .map(function (g) { return { name: String(g.name || ""), amount: Number(g.amount) || 0, purchased: !!g.purchased }; });
- 
+      // Older backups have no bins. In that case this app keeps the bins it already has.
+      const newBins = Array.isArray(data.bins) ? cleanBins(data.bins) : null;
+
       const message = "Replace everything in this app with the backup?\n\n" +
-        "The backup has " + newItems.length + " items and " + newGoals.length + " goals.\n" +
+        "The backup has " + newItems.length + " items and " + newGoals.length + " goals" + (newBins ? " and " + newBins.length + " bins" : "") + ".\n" +
         "What is in this app now will be erased.";
       if (!confirm(message)) return;
- 
+
       items = newItems;
       items.forEach(migrateItem);
       goals = newGoals;
+      if (newBins) bins = newBins;
+      editingBin = null;
       balances = {};
       PLATFORM_NAMES.forEach(function (name) {
         balances[name] = Number(data.balances && data.balances[name]) || 0;
@@ -1901,11 +2578,11 @@
       render();
       showBackupNote("Restored " + newItems.length + " items and " + newGoals.length + " goals.", false);
     }
- 
+
     document.getElementById("restore-button").addEventListener("click", function () {
       restoreFile.click();
     });
- 
+
     restoreFile.addEventListener("change", function () {
       const file = restoreFile.files && restoreFile.files[0];
       if (!file) return;
@@ -1915,7 +2592,7 @@
       reader.readAsText(file);
       restoreFile.value = "";
     });
- 
+
     document.getElementById("restore-text").addEventListener("click", function () {
       if (backupText.value.trim() === "") {
         showBackupNote("Paste your backup text into the box first.", true);
@@ -1923,7 +2600,7 @@
       }
       restoreFromText(backupText.value);
     });
- 
+
     const backupToggle = document.getElementById("backup-toggle");
     const backupSection = document.getElementById("backup-section");
     backupToggle.addEventListener("click", function () {
@@ -1932,11 +2609,12 @@
       backupToggle.textContent = isOpen ? "Backup" : "Close backup";
       if (isOpen) backupNote.style.display = "none";
     });
- 
+
     updateBackupInfo();
+    refreshBinOptions();
     closeForm();
     render();
+    handleScanLink();
   </script>
 </body>
 </html>
- 
