@@ -282,7 +282,13 @@
   <div class="toolbar">
     <button type="button" id="add-item-button" class="primary">+ Add item</button>
     <button type="button" id="import-button">Import from screenshot</button>
+    <button type="button" id="link-button">Import from link</button>
     <input type="file" id="import-file" accept="image/*" hidden>
+  </div>
+  <div id="link-row" style="display:none; gap:8px; margin:8px 0;">
+    <input id="link-input" type="url" inputmode="url" autocapitalize="off" autocorrect="off"
+           placeholder="Paste a Vinted or Depop link" style="flex:1; min-width:0; font-size:16px; padding:10px;">
+    <button type="button" id="link-go" class="primary">Import</button>
   </div>
   <div id="import-note"></div>
   <details id="import-raw">
@@ -1033,6 +1039,180 @@
           showImportNote(importNote.textContent + " I couldn't keep a picture from it, but you can press Choose picture.", true);
         });
     }
+
+    // ---- import a listing from a link ----
+    // Step 1 always works: the link itself contains the item name and the site.
+    // Step 2 is a bonus: we ask a free "proxy" website to fetch the listing page for us
+    // (a browser isn't allowed to open Vinted/Depop pages directly), then read the price and photo from it.
+    // If step 2 fails, you still get the name and site, and you type the price yourself.
+    const linkButton = document.getElementById("link-button");
+    const linkRow = document.getElementById("link-row");
+    const linkInput = document.getElementById("link-input");
+    const linkGo = document.getElementById("link-go");
+
+    // "hollister-sherpa-lined-zip-up" -> "Hollister sherpa lined zip up"
+    function slugToName(slug) {
+      const words = decodeURIComponent(slug || "").replace(/[-_]+/g, " ").trim();
+      return words ? words.charAt(0).toUpperCase() + words.slice(1) : "";
+    }
+
+    // Looks only at the text of the link. Returns null if it isn't a listing link.
+    function parseListingLink(raw) {
+      let url;
+      try { url = new URL(String(raw).trim()); } catch (e) { return null; }
+      const host = url.hostname.toLowerCase().replace(/^www\./, "");
+
+      if (/(^|\.)vinted\.[a-z.]+$/.test(host)) {
+        const m = url.pathname.match(/\/items\/(\d+)(?:-([^/]*))?/);
+        if (!m) return null;
+        return { site: "Vinted", name: slugToName(m[2]), pageUrl: url.origin + url.pathname };
+      }
+      if (host === "depop.com" || host.endsWith(".depop.com")) {
+        const m = url.pathname.match(/\/products\/([^/]+)/);
+        if (!m) return null;
+        // Depop slugs look like: seller-item-name-words-0a07  (seller first, short id last)
+        const parts = m[1].replace(/-[0-9a-f]{4}$/i, "").split("-");
+        const seller = parts.shift();
+        return { site: "Depop", name: slugToName(parts.join("-")), seller: seller, pageUrl: url.origin + url.pathname };
+      }
+      if (host.endsWith("app.link")) return { shortLink: true, pageUrl: url.href };
+      return null;
+    }
+
+    function fetchViaProxy(url, asBlob) {
+      const controller = new AbortController();
+      const timer = setTimeout(function () { controller.abort(); }, 10000);
+      return fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url), { signal: controller.signal })
+        .then(function (r) {
+          clearTimeout(timer);
+          if (!r.ok) throw new Error("the page could not be fetched (" + r.status + ")");
+          return asBlob ? r.blob() : r.text();
+        });
+    }
+
+    // Pulls title, price and photo address out of a listing page.
+    function readListingPage(html) {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const meta = function (prop) {
+        const el = doc.querySelector('meta[property="' + prop + '"], meta[name="' + prop + '"]');
+        return el ? (el.getAttribute("content") || "").trim() : "";
+      };
+      const result = {
+        title: meta("og:title").replace(/\s*\|\s*(Vinted|Depop).*$/i, "").trim(),
+        image: meta("og:image"),
+        price: null
+      };
+
+      // Best source first: structured data / meta tags, then the visible text.
+      const metaPrice = meta("product:price:amount") || meta("og:price:amount");
+      if (metaPrice && Number(metaPrice) > 0) result.price = Number(metaPrice);
+
+      if (result.price === null) {
+        const blocks = doc.querySelectorAll('script[type="application/ld+json"]');
+        for (let i = 0; i < blocks.length && result.price === null; i++) {
+          const m = blocks[i].textContent.match(/"price"\s*:\s*"?([\d.]+)/);
+          if (m && Number(m[1]) > 0) result.price = Number(m[1]);
+        }
+      }
+
+      if (result.price === null) {
+        doc.querySelectorAll("script, style").forEach(function (el) { el.remove(); });
+        const text = (doc.body ? doc.body.textContent : "").replace(/\s+/g, " ");
+        const h1 = doc.querySelector("h1");
+        const start = h1 ? Math.max(0, text.indexOf(h1.textContent.replace(/\s+/g, " ").trim())) : 0;
+        const m = text.slice(start).match(/\$\s?(\d[\d,]*(?:\.\d{1,2})?)/);
+        if (m) result.price = Number(m[1].replace(/,/g, ""));
+      }
+      return result;
+    }
+
+    function fillFormFromLink(info) {
+      closeForm();
+      document.getElementById("name").value = info.name || "";
+      siteInput.value = info.site;
+      statusInput.value = "Listed";
+      photosAll.checked = true;
+      setAllPhotoBoxes(true);
+      updatePhotoUI();
+      postedInput.value = todayText();
+      if (info.price !== null && info.price !== undefined) {
+        originalInput.value = info.price;
+        currentInput.value = info.price;
+      }
+      updateSoldForUI();
+      updateBumpUI(true);
+      setFormPhoto(info.photo || "");
+      showForm();
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      const notes = [];
+      if (info.price === null || info.price === undefined) notes.push("I couldn't get the price, so please type it in.");
+      if (!info.photo) notes.push("I couldn't get a picture; press Choose picture if you want one.");
+      const lowerName = (info.name || "").toLowerCase();
+      const duplicate = lowerName !== "" && items.some(function (item) {
+        return item.name.toLowerCase() === lowerName && item.site === info.site;
+      });
+      if (duplicate) notes.push("Heads up: you already have an item with this name on " + info.site + ".");
+      notes.push("Please check the name and price, then press Add item.");
+      showImportNote("Read from your link. " + notes.join(" "), notes.length > 1);
+    }
+
+    function importFromLink(raw) {
+      let info = parseListingLink(raw);
+      if (!info) {
+        showImportNote("That doesn't look like a Vinted or Depop listing link. Paste the full link to one item.", true);
+        return Promise.resolve();
+      }
+      linkGo.disabled = true;
+      showImportNote("Reading the link...", false);
+
+      // A short depop.app.link address only redirects, so look inside it for the real depop.com address.
+      const resolved = info.shortLink
+        ? fetchViaProxy(info.pageUrl, false).then(function (html) {
+            const m = html.match(/https?:\/\/(?:www\.)?depop\.com\/products\/[^"'?\s<>\\)]+/);
+            const full = m ? parseListingLink(m[0]) : null;
+            if (!full) throw new Error("no listing address found inside the short link");
+            return full;
+          })
+        : Promise.resolve(info);
+
+      return resolved
+        .then(function (base) {
+          info = { site: base.site, name: base.name, price: null, photo: "" };
+          return fetchViaProxy(base.pageUrl, false)
+            .then(function (html) {
+              const page = readListingPage(html);
+              if (page.title) info.name = page.title;
+              info.price = page.price;
+              if (!page.image) return;
+              return fetchViaProxy(page.image, true)
+                .then(loadImage)
+                .then(function (img) {
+                  info.photo = makeThumb(img, { x: 0, y: 0, w: img.naturalWidth, h: img.naturalHeight });
+                })
+                .catch(function () { /* no picture is fine */ });
+            })
+            .catch(function () { /* page not readable: keep the name from the link */ });
+        })
+        .then(function () {
+          fillFormFromLink(info);
+          linkInput.value = "";
+        })
+        .catch(function (err) {
+          showImportNote("I couldn't open that short link (" + err.message + "). Open it in your browser, copy the full depop.com address, and paste that instead.", true);
+        })
+        .then(function () { linkGo.disabled = false; });
+    }
+
+    linkButton.addEventListener("click", function () {
+      const open = linkRow.style.display === "none";
+      linkRow.style.display = open ? "flex" : "none";
+      if (open) linkInput.focus();
+    });
+    linkGo.addEventListener("click", function () { importFromLink(linkInput.value); });
+    linkInput.addEventListener("keydown", function (event) {
+      if (event.key === "Enter") { event.preventDefault(); importFromLink(linkInput.value); }
+    });
 
     // ---- starting balances (typed by you) ----
     PLATFORM_NAMES.forEach(function (name) {
