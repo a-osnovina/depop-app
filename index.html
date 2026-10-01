@@ -131,6 +131,24 @@
     .suggest .amt { text-align: right; }
     .suggest .amt small { display: block; font-size: 12px; color: #b42318; }
     #photo-details { display: none; }
+
+    /* Backup and restore */
+    #backup-section { display: none; border: 1px solid #ddd; border-radius: 10px; padding: 10px 12px 12px; margin-top: 8px; }
+    #backup-section button { min-height: 40px; font-size: 14px; }
+    #backup-section .toolbar { margin-top: 8px; }
+    .filters-box { margin-top: 4px; }
+    .filters-box > summary { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; background: #ffffff; border: 1px solid #c4c4c4; border-radius: 10px; color: #0b5cad; font-size: 15px; font-weight: 700; text-align: center; cursor: pointer; list-style: none; touch-action: manipulation; }
+    .filters-box > summary::-webkit-details-marker { display: none; }
+    .filters-box > summary::after { content: "\25BE"; font-size: 12px; }
+    .filters-box[open] > summary::after { content: "\25B4"; }
+    .filters-panel { border: 1px solid #ddd; border-radius: 10px; padding: 12px; margin-top: 8px; }
+    .filters-panel .list-tools { margin-top: 0; }
+    .filters-panel #export-button { width: 100%; margin-top: 14px; }
+    #backup-note { display: none; background: #e8f3ff; color: #0b3d75; border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
+    #backup-note.warn { background: #fff4d6; color: #6b4a00; }
+    #backup-text-box { margin-top: 6px; }
+    #backup-text-box summary { min-height: 40px; display: flex; align-items: center; color: #0b5cad; font-weight: 600; font-size: 14px; }
+    #backup-text { display: block; width: 100%; font: inherit; font-size: 16px; padding: 8px 10px; border: 1px solid #b8b8b8; border-radius: 8px; margin-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -212,11 +230,32 @@
 
   <div class="top">
     <h1>Resale Tracker</h1>
-    <button type="button" id="export-button" class="small-btn">Export CSV</button>
+    <button type="button" id="backup-toggle" class="small-btn">Backup</button>
+  </div>
+
+  <div id="backup-section">
+    <div id="backup-info" class="small"></div>
+    <div class="toolbar">
+      <button type="button" id="backup-save" class="primary">Save backup</button>
+      <button type="button" id="restore-button">Restore from file</button>
+      <input type="file" id="restore-file" accept=".json,application/json" hidden>
+    </div>
+    <details id="backup-text-box">
+      <summary>Copy and paste instead</summary>
+      <textarea id="backup-text" rows="3" placeholder="Your backup text shows up here. To restore, paste a backup in this box."></textarea>
+      <div class="toolbar">
+        <button type="button" id="backup-copy">Copy backup text</button>
+        <button type="button" id="restore-text">Restore from text</button>
+      </div>
+    </details>
+    <div id="backup-note"></div>
   </div>
 
   <!-- ITEM LIST -->
   <h2>Item list</h2>
+  <details class="filters-box" id="filters-box">
+    <summary id="filters-summary">Filters</summary>
+    <div class="filters-panel">
   <div class="list-tools">
     <label class="field">Platform
       <select id="filter">
@@ -237,6 +276,9 @@
       <input id="remind-days" type="number" inputmode="numeric" min="1" step="1" value="7"> days
     </label>
   </div>
+      <button type="button" id="export-button">Export CSV</button>
+    </div>
+  </details>
   <div class="toolbar">
     <button type="button" id="add-item-button" class="primary">+ Add item</button>
     <button type="button" id="import-button">Import from screenshot</button>
@@ -374,14 +416,20 @@
     } catch (e) {}
 
     // Convert older saved items to the newer format.
-    items.forEach(function (item) {
+    function migrateItem(item) {
+      item.name = String(item.name || "");
+      if (PLATFORM_NAMES.indexOf(item.site) === -1) item.site = "Depop";
       if (STATUSES.indexOf(item.status) === -1) item.status = "In progress";
       if (!item.photos) item.photos = {};
       if (item.original === undefined) item.original = Number(item.price) || 0;
       if (item.current === undefined) item.current = Number(item.price) || 0;
       if (item.soldFor === undefined) item.soldFor = item.status === "Sold" ? (Number(item.price) || 0) : null;
       if (!item.priceChanged) item.priceChanged = "";
-      if (!item.picture) item.picture = "";
+      item.original = Number(item.original) || 0;
+      item.current = Number(item.current) || 0;
+      if (item.soldFor !== null && item.soldFor !== undefined) item.soldFor = Number(item.soldFor) || 0;
+      if (typeof item.photos !== "object" || item.photos === null) item.photos = {};
+      if (typeof item.picture !== "string" || item.picture.indexOf("data:image/") !== 0) item.picture = "";
       // Older Vinted bumps were a percent; keep their cost as a typed-in dollar amount.
       if (item.bumpAmount === undefined) {
         const config = PLATFORMS[item.site];
@@ -389,7 +437,8 @@
           ? Math.round(salePrice(item) * (item.bumpPercent || 0)) / 100
           : 0;
       }
-    });
+    }
+    items.forEach(migrateItem);
 
     const form = document.getElementById("item-form");
     const addItemButton = document.getElementById("add-item-button");
@@ -1219,6 +1268,7 @@
       const parts = [];
       if (filter !== "All") parts.push(filter);
       if (statusFilter !== "All") parts.push(statusFilter);
+      document.getElementById("filters-summary").textContent = "Filters" + (parts.length ? ": " + parts.join(" \u00B7 ") : "");
       document.getElementById("list-count").textContent =
         "Showing " + shown + " of " + items.length + " items" + (parts.length ? " (" + parts.join(", ") + ")" : "");
 
@@ -1358,6 +1408,162 @@
       link.click();
     });
 
+    // ---- backup and restore ----
+    // A backup is one small file holding your items (with pictures), goals and balances.
+    // Restoring replaces everything in this copy of the app with what is in the backup.
+    const backupNote = document.getElementById("backup-note");
+    const backupInfo = document.getElementById("backup-info");
+    const backupText = document.getElementById("backup-text");
+    const restoreFile = document.getElementById("restore-file");
+
+    function showBackupNote(text, isWarning) {
+      backupNote.textContent = text;
+      backupNote.className = isWarning ? "warn" : "";
+      backupNote.style.display = "block";
+    }
+
+    function updateBackupInfo() {
+      let last = "";
+      try { last = localStorage.getItem("lastBackup") || ""; } catch (e) {}
+      backupInfo.textContent = last ? "Last backup saved on " + last + "." : "You haven't saved a backup from this app yet.";
+    }
+
+    function markBackupSaved() {
+      try { localStorage.setItem("lastBackup", todayText()); } catch (e) {}
+      updateBackupInfo();
+    }
+
+    function backupData() {
+      return JSON.stringify({
+        app: "resale-tracker",
+        version: 1,
+        saved: new Date().toISOString(),
+        items: items,
+        goals: goals,
+        balances: balances,
+        remindDays: remindDays
+      });
+    }
+
+    function downloadBackup(text, name) {
+      const blob = new Blob([text], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = name;
+      link.click();
+      markBackupSaved();
+      showBackupNote("Backup file saved. Look in your Downloads or the Files app.", false);
+    }
+
+    document.getElementById("backup-save").addEventListener("click", function () {
+      const text = backupData();
+      const name = "resale-backup-" + todayText() + ".json";
+      let file = null;
+      try { file = new File([text], name, { type: "application/json" }); } catch (e) {}
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: "Resale Tracker backup" })
+          .then(function () {
+            markBackupSaved();
+            showBackupNote("Backup shared. Choose Save to Files to keep it.", false);
+          })
+          .catch(function (err) {
+            if (err && err.name === "AbortError") return;
+            downloadBackup(text, name);
+          });
+      } else {
+        downloadBackup(text, name);
+      }
+    });
+
+    document.getElementById("backup-copy").addEventListener("click", function () {
+      const text = backupData();
+      backupText.value = text;
+      document.getElementById("backup-text-box").open = true;
+      const fallback = function () {
+        backupText.focus();
+        backupText.select();
+        showBackupNote("I couldn't copy it automatically. Press and hold in the box, choose Select All, then Copy.", true);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(function () {
+            markBackupSaved();
+            showBackupNote("Backup copied. Open the other copy of the app, paste it into the box under Copy and paste instead, and press Restore from text.", false);
+          })
+          .catch(fallback);
+      } else {
+        fallback();
+      }
+    });
+
+    function restoreFromText(text) {
+      let data = null;
+      try { data = JSON.parse(text); } catch (e) {}
+      if (!data || data.app !== "resale-tracker" || !Array.isArray(data.items) || !Array.isArray(data.goals)) {
+        showBackupNote("That doesn't look like a Resale Tracker backup, so nothing was changed.", true);
+        return;
+      }
+      const newItems = data.items.filter(function (x) { return x && typeof x === "object"; });
+      const newGoals = data.goals
+        .filter(function (g) { return g && typeof g === "object"; })
+        .map(function (g) { return { name: String(g.name || ""), amount: Number(g.amount) || 0, purchased: !!g.purchased }; });
+
+      const message = "Replace everything in this app with the backup?\n\n" +
+        "The backup has " + newItems.length + " items and " + newGoals.length + " goals.\n" +
+        "What is in this app now will be erased.";
+      if (!confirm(message)) return;
+
+      items = newItems;
+      items.forEach(migrateItem);
+      goals = newGoals;
+      balances = {};
+      PLATFORM_NAMES.forEach(function (name) {
+        balances[name] = Number(data.balances && data.balances[name]) || 0;
+        document.getElementById("start-" + name).value = balances[name] ? balances[name] : "";
+      });
+      if (Number(data.remindDays) >= 1) {
+        remindDays = Number(data.remindDays);
+        remindInput.value = remindDays;
+      }
+      hideImportNote();
+      closeForm();
+      save();
+      render();
+      showBackupNote("Restored " + newItems.length + " items and " + newGoals.length + " goals.", false);
+    }
+
+    document.getElementById("restore-button").addEventListener("click", function () {
+      restoreFile.click();
+    });
+
+    restoreFile.addEventListener("change", function () {
+      const file = restoreFile.files && restoreFile.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function () { restoreFromText(String(reader.result)); };
+      reader.onerror = function () { showBackupNote("I couldn't open that file.", true); };
+      reader.readAsText(file);
+      restoreFile.value = "";
+    });
+
+    document.getElementById("restore-text").addEventListener("click", function () {
+      if (backupText.value.trim() === "") {
+        showBackupNote("Paste your backup text into the box first.", true);
+        return;
+      }
+      restoreFromText(backupText.value);
+    });
+
+    const backupToggle = document.getElementById("backup-toggle");
+    const backupSection = document.getElementById("backup-section");
+    backupToggle.addEventListener("click", function () {
+      const isOpen = backupSection.style.display === "block";
+      backupSection.style.display = isOpen ? "none" : "block";
+      backupToggle.textContent = isOpen ? "Backup" : "Close backup";
+      if (isOpen) backupNote.style.display = "none";
+    });
+
+    updateBackupInfo();
     closeForm();
     render();
   </script>
