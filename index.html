@@ -132,6 +132,10 @@
     .badge { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; background: rgba(0, 0, 0, 0.08); color: #555; margin-left: 4px; }
     .badge.ok { background: #1a7f37; color: #ffffff; font-weight: 700; }
     .due { font-size: 13px; color: #b42318; font-weight: bold; }
+    .sold-mini { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; min-height: 48px; margin: 6px 0; padding: 8px 12px; border-radius: 12px; background: #dff3e3; border: 0; border-left: 6px solid #2e9b4f; font-size: 15px; color: inherit; }
+    .sold-mini .sold-name { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sold-mini .sold-site { flex: none; font-size: 13px; color: #444; }
+    .sold-mini .sold-profit { flex: none; font-weight: 700; color: #1a7f37; }
     .card-actions { display: flex; gap: 8px; margin-top: 12px; }
     .card-actions button { flex: 1; padding: 0 4px; font-size: 15px; white-space: nowrap; }
 
@@ -188,6 +192,14 @@
             </label>
             <div class="bal-line"><span>Item profit</span><span id="item-Depop">$0.00</span></div>
             <div class="bal-line total"><span>Total</span><span id="sum-Depop">$0.00</span></div>
+          </div>
+          <div class="bal-block">
+            <div class="bal-name">Facebook</div>
+            <label class="field">Starting balance ($)
+              <input id="start-Facebook" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00">
+            </label>
+            <div class="bal-line"><span>Item profit</span><span id="item-Facebook">$0.00</span></div>
+            <div class="bal-line total"><span>Total</span><span id="sum-Facebook">$0.00</span></div>
           </div>
           <div class="bal-block">
             <div class="bal-name">Vinted</div>
@@ -274,6 +286,7 @@
         <option>All</option>
         <option>Depop</option>
         <option>Vinted</option>
+        <option>Facebook</option>
       </select>
     </label>
     <label class="field">Status
@@ -308,6 +321,7 @@
       <select id="site">
         <option>Depop</option>
         <option>Vinted</option>
+        <option>Facebook</option>
       </select>
     </label>
     <label class="field">Status
@@ -375,7 +389,8 @@
     // a platform with bumpPercent: null asks you to type the bump cost in dollars instead.
     const PLATFORMS = {
       Depop: { bumpLabel: "I bumped this listing on Depop", bumpPercent: 12 },
-      Vinted: { bumpLabel: "I bumped this listing on Vinted (3 days)", bumpPercent: null }
+      Vinted: { bumpLabel: "I bumped this listing on Vinted (3 days)", bumpPercent: null },
+      Facebook: { bumpLabel: "I boosted or renewed this listing on Facebook", bumpPercent: null }
     };
     const PLATFORM_NAMES = Object.keys(PLATFORMS);
 
@@ -420,7 +435,7 @@
     }
     try {
       const savedFilter = localStorage.getItem("filter");
-      if (savedFilter === "Depop" || savedFilter === "Vinted") filter = savedFilter;
+      if (PLATFORM_NAMES.indexOf(savedFilter) !== -1) filter = savedFilter;
       const savedStatusFilter = localStorage.getItem("statusFilter");
       if (STATUSES.indexOf(savedStatusFilter) !== -1) statusFilter = savedStatusFilter;
       const savedRemind = Number(localStorage.getItem("remindDays"));
@@ -866,8 +881,13 @@
       let site = "";
       if (isDepop) site = "Depop";
       else if (/vinted|buyer protection|subtotal for buyer/i.test(text)) site = "Vinted";
+      else if (/marketplace|facebook/i.test(text)) site = "Facebook";
 
-      return { name: name, price: price, site: site, layout: isDepop ? "depop" : "", titleLine: titleLine };
+      // A "Sold" banner (Vinted) or grey "Sold" button (Depop) on its own line means the item is sold.
+      const soldLine = /^[^A-Za-z]{0,3}sold[^A-Za-z]{0,3}$/i;
+      const sold = lines.concat(extraLines).some(function (l) { return soldLine.test(l); });
+
+      return { name: name, price: price, site: site, sold: sold, layout: isDepop ? "depop" : "", titleLine: titleLine };
     }
 
     // Depop puts the price in a grey bar at the bottom that the reader skips on a normal pass.
@@ -905,7 +925,45 @@
             return worker.setParameters({ tessedit_pageseg_mode: "11" })
               .then(function () { return worker.recognize(canvas); })
               .then(function (result) {
-                return worker.terminate().then(function () { return result.data.text; });
+                // The grey "Sold" button is white-on-grey and gets missed above, so look for it on its own:
+                // read thin strips of the right-hand side, one line at a time.
+                let text = result.data.text;
+                return worker.setParameters({ tessedit_pageseg_mode: "7" })
+                  .then(function () {
+                    const x0 = Math.round(img.naturalWidth * 0.72);
+                    const bandH = Math.round(img.naturalHeight * 0.055);
+                    const starts = [];
+                    for (let f = 0.78; f <= 0.9; f += 0.02) starts.push(Math.round(img.naturalHeight * f));
+                    let chain = Promise.resolve();
+                    starts.forEach(function (y) {
+                      chain = chain.then(function () {
+                        const w = img.naturalWidth - x0;
+                        const c = document.createElement("canvas");
+                        c.width = w * 4 + 160;
+                        c.height = bandH * 4 + 160;
+                        const g = c.getContext("2d");
+                        g.fillStyle = "#fff";
+                        g.fillRect(0, 0, c.width, c.height);
+                        g.drawImage(img, x0, y, w, bandH, 80, 80, w * 4, bandH * 4);
+                        const d = g.getImageData(80, 80, w * 4, bandH * 4);
+                        let lo = 255;
+                        let hi = 0;
+                        const q = d.data;
+                        for (let i = 0; i < q.length; i += 4) {
+                          const v = 0.299 * q[i] + 0.587 * q[i + 1] + 0.114 * q[i + 2];
+                          q[i] = v;
+                          if (v < lo) lo = v;
+                          if (v > hi) hi = v;
+                        }
+                        const span = hi - lo || 1;
+                        for (let i = 0; i < q.length; i += 4) q[i] = q[i + 1] = q[i + 2] = (q[i] - lo) * 255 / span;
+                        g.putImageData(d, 80, 80);
+                        return worker.recognize(c).then(function (r) { text += "\n" + r.data.text; });
+                      });
+                    });
+                    return chain;
+                  })
+                  .then(function () { return worker.terminate().then(function () { return text; }); });
               })
               .catch(function () {
                 worker.terminate();
@@ -995,7 +1053,7 @@
       closeForm();
       document.getElementById("name").value = found.name;
       if (found.site) siteInput.value = found.site;
-      statusInput.value = "Listed";
+      statusInput.value = found.sold ? "Sold" : "Listed";
       photosAll.checked = true;
       setAllPhotoBoxes(true);
       updatePhotoUI();
@@ -1005,6 +1063,7 @@
         currentInput.value = found.price;
       }
       updateSoldForUI();
+      if (found.sold && found.price !== null) soldForInput.value = found.price;
       updateBumpUI(true);
       showForm();
       form.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1019,7 +1078,7 @@
       } else if (missing.length === 1) {
         message = "I couldn't read " + missing[0] + ". Please fill it in below, then check the rest.";
       } else {
-        message = "Read from your screenshot. Please check the name and price, and change the date posted if it wasn't today, then press Add item. All photos are marked as taken; untick that box if you still need some.";
+        message = "Read from your screenshot. Please check the name and price, and change the date posted if it wasn't today, then press Add item." + (found.sold ? " It says Sold, so I set the status to Sold with the sale price filled in." : "") + " All photos are marked as taken; untick that box if you still need some.";
       }
 
       const lowerName = found.name.toLowerCase();
@@ -1388,6 +1447,8 @@
       renderOverall(balance, activeTotal, active.length);
     }
 
+    const expandedSold = new Set();
+
     function render() {
       const list = document.getElementById("list");
       list.innerHTML = "";
@@ -1409,6 +1470,21 @@
         if (filter !== "All" && item.site !== filter) return;
         if (statusFilter !== "All" && item.status !== statusFilter) return;
         shown++;
+
+        // Sold items shrink to name, site and profit unless you are filtering by Sold (tap one to open it).
+        if (item.status === "Sold" && statusFilter !== "Sold" && !expandedSold.has(item)) {
+          const mini = el("button", "sold-mini");
+          mini.type = "button";
+          mini.appendChild(el("span", "sold-name", item.name));
+          mini.appendChild(el("span", "sold-site", item.site));
+          mini.appendChild(el("span", "sold-profit", money(profit)));
+          mini.onclick = function () {
+            expandedSold.add(item);
+            render();
+          };
+          list.appendChild(mini);
+          return;
+        }
 
         const card = el("div", "card " + (STATUS_CLASS[item.status] || ""));
         const top = el("div", "card-top");
@@ -1493,6 +1569,15 @@
           }
         };
         actions.appendChild(deleteButton);
+
+        if (item.status === "Sold" && statusFilter !== "Sold") {
+          const closeButton = el("button", "", "Collapse");
+          closeButton.onclick = function () {
+            expandedSold.delete(item);
+            render();
+          };
+          actions.insertBefore(closeButton, actions.firstChild);
+        }
 
         card.appendChild(actions);
         list.appendChild(card);
