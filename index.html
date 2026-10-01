@@ -8,9 +8,9 @@
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
     html { -webkit-text-size-adjust: 100%; }
-    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; color: #222; max-width: 760px; margin: 0 auto; padding: 0 12px calc(32px + env(safe-area-inset-bottom)); background: #ffffff; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; color: #222; max-width: 760px; margin: 0 auto; padding: 0 12px calc(110px + env(safe-area-inset-bottom)); background: #ffffff; }
     h1 { font-size: 22px; margin: 0; }
-    h2 { font-size: 18px; margin: 18px 0 8px; }
+    h2 { font-size: 18px; margin: 26px 0 10px; }
     .small { font-size: 12px; color: #555; }
 
     /* Buttons: big enough for a thumb */
@@ -46,7 +46,7 @@
     #goals-mini { display: none; margin-top: 8px; }
     #goals-mini progress { width: 100%; height: 8px; display: block; }
     #mini-text { margin-top: 2px; }
-    .dropdown-panel { position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid #ccc; border-radius: 0 0 12px 12px; padding: 4px 14px 14px; max-height: 65vh; overflow: auto; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
+    .dropdown-panel { position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid #ccc; border-radius: 0 0 12px 12px; padding: 4px 14px 14px; max-height: calc(100vh - 290px); overflow: auto; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
 
     /* Platform balances */
     .bal-block { border-bottom: 1px solid #ddd; padding: 8px 0 12px; }
@@ -94,7 +94,26 @@
     #import-raw pre { white-space: pre-wrap; background: #f6f6f6; padding: 8px; border-radius: 8px; margin: 6px 0 0; }
 
     /* Add / edit form */
-    #item-form { display: none; border: 1px solid #ccc; border-radius: 12px; padding: 2px 14px 16px; margin: 12px 0; scroll-margin-top: 170px; }
+    /* Add / edit item window: dark backdrop, blue top bar, blue-edged bottom bar, so you can see where it starts and ends */
+    #item-sheet { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 40; background: rgba(15, 23, 42, 0.65); display: flex; align-items: flex-end; justify-content: center; }
+    #item-form { display: flex; flex-direction: column; width: 100%; max-width: 760px; max-height: 94vh; background: #ffffff; border-radius: 20px 20px 0 0; overflow: hidden; box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.35); }
+    .sheet-head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; background: #0b5cad; color: #ffffff; }
+    .sheet-head h2 { margin: 0; font-size: 20px; color: #ffffff; }
+    .sheet-head button { min-height: 40px; font-size: 14px; background: rgba(255, 255, 255, 0.15); border-color: rgba(255, 255, 255, 0.6); color: #ffffff; }
+    .sheet-body { flex: 1; min-height: 0; overflow: auto; padding: 4px 16px 28px; -webkit-overflow-scrolling: touch; }
+    .sheet-foot { flex: none; display: flex; gap: 10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: #eef4fb; border-top: 3px solid #0b5cad; }
+    .sheet-foot button { flex: 1; }
+    .sheet-foot #submit-button { flex: 2; }
+    #item-form input, #item-form select { border-color: #7d838c; }
+    .advanced-toggle { display: block; width: 100%; margin-top: 24px; border: 1.5px dashed #b08900; background: #fffaf0; color: #6b4a00; font-weight: 600; }
+    #advanced-fields { margin-top: 14px; padding: 2px 14px 18px; background: #fbf7ee; border: 1px solid #e6dcc3; border-left: 6px solid #b08900; border-radius: 12px; }
+    .advanced-title { margin-top: 12px; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b4a00; }
+
+    /* Bar at the bottom of the screen: add an item by hand, from a screenshot, or by scanning */
+    #action-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: #ffffff; border-top: 1px solid #c4c4c4; box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.18); padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
+    .action-inner { max-width: 760px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; }
+    .action-inner button { padding: 0 6px; font-weight: 600; }
+    #shipped-row { text-align: right; margin-top: 8px; }
     #bump-amount-row { display: none; margin-left: 12px; }
     #sold-for-row { display: none; }
     #bump-note { margin-left: 12px; color: #444; }
@@ -118,7 +137,7 @@
     .count-right { text-align: right; margin-top: 6px; }
 
     /* Item cards */
-    .card { border-radius: 12px; padding: 12px; margin: 10px 0; border-left: 6px solid #999; }
+    .card { border-radius: 12px; padding: 14px; margin: 14px 0; border-left: 6px solid #999; }
     .row-progress { background: #fff4d6; border-left-color: #e0a800; }
     .row-listed { background: #e0efff; border-left-color: #3b82c4; }
     .row-sold { background: #dff3e3; border-left-color: #2e9b4f; }
@@ -345,7 +364,6 @@
   </div>
 
   <!-- BINS AND SLOTS -->
-  <div class="scan-row"><button type="button" id="scan-button" class="primary">Scan QR code</button></div>
   <div id="bin-chips"></div>
   <details class="filters-box" id="bins-box">
     <summary id="bins-summary">Manage bins and labels</summary>
@@ -390,83 +408,104 @@
       <button type="button" id="export-button">Export CSV</button>
     </div>
   </details>
-  <div class="toolbar">
-    <button type="button" id="add-item-button" class="primary">+ Add item</button>
-    <button type="button" id="import-button">Import from screenshot</button>
-    <input type="file" id="import-file" accept="image/*" hidden>
-  </div>
-  <div id="import-note"></div>
-  <details id="import-raw">
-    <summary>What the app read from the screenshot</summary>
-    <pre id="import-raw-text"></pre>
-  </details>
-
-  <form id="item-form">
-    <label class="field">Item name <input id="name" required></label>
-    <label class="field">Site
-      <select id="site">
-        <option>Depop</option>
-        <option>Vinted</option>
-        <option>Facebook</option>
-      </select>
-    </label>
-    <label class="field">Status
-      <select id="status">
-        <option>In progress</option>
-        <option>Listed</option>
-        <option>Sold</option>
-        <option>Shipped</option>
-      </select>
-    </label>
-
-    <div id="slot-fields">
-      <label class="field">Bin
-        <select id="bin"><option value="">No bin</option></select>
-      </label>
-      <label class="field">Slot
-        <select id="slot"><option value="">No slot</option></select>
-      </label>
-      <div id="slot-suggest" class="small" style="grid-column: 1 / -1; margin-top: 6px;"></div>
-    </div>
-
-    <label class="field">Weight (oz) <input id="weight" type="number" inputmode="decimal" step="0.1" min="0" placeholder="0"></label>
-
-    <div class="field">
-      Picture shown in your list
-      <div><img id="pic-preview" alt="Item picture"></div>
-      <div class="pic-buttons">
-        <button type="button" id="pic-choose">Choose picture</button>
-        <button type="button" id="pic-remove">Remove picture</button>
+  <div id="item-sheet" hidden>
+    <form id="item-form">
+      <div class="sheet-head">
+        <h2 id="sheet-title">Add item</h2>
+        <button type="button" id="sheet-close">Close</button>
       </div>
-      <input type="file" id="pic-file" accept="image/*" hidden>
-    </div>
 
-    <label class="check" style="margin-top:14px"><input type="checkbox" id="photos-all"> All photos taken</label>
-    <fieldset id="photo-details">
-      <legend>Tick the photos you have taken</legend>
-      <div id="photo-boxes"></div>
-    </fieldset>
+      <div class="sheet-body">
+        <div id="import-note"></div>
+        <details id="import-raw">
+          <summary>What the app read from the screenshot</summary>
+          <pre id="import-raw-text"></pre>
+        </details>
+        <input type="file" id="import-file" accept="image/*" hidden>
 
-    <label class="field">Date posted <input id="posted" type="date"></label>
-    <label class="field">Date sold <input id="sold" type="date"></label>
+        <label class="field">Item name <input id="name" required></label>
 
-    <label class="field">Original listed price ($) <input id="original" type="number" inputmode="decimal" step="0.01" min="0" value="0"></label>
-    <label class="field">Current price ($) <input id="current" type="number" inputmode="decimal" step="0.01" min="0" placeholder="same as original"></label>
-    <label class="field" id="sold-for-row">Sold for ($) <input id="sold-for" type="number" inputmode="decimal" step="0.01" min="0" placeholder="same as current price"></label>
+        <div class="field">
+          Picture shown in your list
+          <div><img id="pic-preview" alt="Item picture"></div>
+          <div class="pic-buttons">
+            <button type="button" id="pic-choose">Choose picture</button>
+            <button type="button" id="pic-remove">Remove picture</button>
+          </div>
+          <input type="file" id="pic-file" accept="image/*" hidden>
+        </div>
 
-    <label class="check" style="margin-top:14px"><input type="checkbox" id="bump"> <span id="bump-label"></span></label>
-    <label class="field" id="bump-amount-row">Bump cost ($) <input id="bump-amount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00"></label>
-    <div id="bump-note"></div>
+        <label class="field">Price ($) <input id="original" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00"></label>
+        <label class="field">Date posted <input id="posted" type="date"></label>
+        <label class="field">Listed on
+          <select id="site">
+            <option>Depop</option>
+            <option>Vinted</option>
+            <option>Facebook</option>
+          </select>
+        </label>
 
-    <div class="form-actions">
-      <button type="submit" id="submit-button" class="primary">Add item</button>
-      <button type="button" id="cancel-edit">Cancel</button>
-    </div>
-  </form>
+        <div id="slot-fields">
+          <label class="field">Bin
+            <select id="bin"><option value="">No bin</option></select>
+          </label>
+          <label class="field">Slot
+            <select id="slot"><option value="">No slot</option></select>
+          </label>
+          <div id="slot-suggest" class="small" style="grid-column: 1 / -1; margin-top: 6px;"></div>
+        </div>
+
+        <button type="button" id="advanced-toggle" class="advanced-toggle">Advanced options</button>
+
+        <div id="advanced-fields" hidden>
+          <div class="advanced-title">Advanced</div>
+
+          <label class="field">Status
+            <select id="status">
+              <option>In progress</option>
+              <option>Listed</option>
+              <option>Sold</option>
+              <option>Shipped</option>
+            </select>
+          </label>
+
+          <label class="field">Weight (oz) <input id="weight" type="number" inputmode="decimal" step="0.1" min="0" placeholder="0"></label>
+
+          <label class="check" style="margin-top:14px"><input type="checkbox" id="photos-all"> All photos taken</label>
+          <fieldset id="photo-details">
+            <legend>Tick the photos you have taken</legend>
+            <div id="photo-boxes"></div>
+          </fieldset>
+
+          <label class="field">Current price ($) <input id="current" type="number" inputmode="decimal" step="0.01" min="0" placeholder="same as price above"></label>
+          <label class="field">Date sold <input id="sold" type="date"></label>
+          <label class="field" id="sold-for-row">Sold for ($) <input id="sold-for" type="number" inputmode="decimal" step="0.01" min="0" placeholder="same as current price"></label>
+
+          <label class="check" style="margin-top:14px"><input type="checkbox" id="bump"> <span id="bump-label"></span></label>
+          <label class="field" id="bump-amount-row">Bump cost ($) <input id="bump-amount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00"></label>
+          <div id="bump-note"></div>
+        </div>
+      </div>
+
+      <div class="sheet-foot">
+        <button type="submit" id="submit-button" class="primary">Add item</button>
+        <button type="button" id="cancel-edit">Cancel</button>
+      </div>
+    </form>
+  </div>
 
   <div id="reduce-banner"></div>
   <div id="list"></div>
   <div id="list-count" class="small count-right"></div>
+  <div id="shipped-row"><button type="button" id="shipped-toggle" class="small-btn" hidden></button></div>
+
+  <div id="action-bar">
+    <div class="action-inner">
+      <button type="button" id="add-item-button" class="primary">+ Add item</button>
+      <button type="button" id="import-button">Screenshot</button>
+      <button type="button" id="scan-button">Scan QR</button>
+    </div>
+  </div>
 
   <div id="price-modal" hidden>
     <div class="modal-panel">
@@ -550,6 +589,7 @@
     let filter = "All";
     let statusFilter = "All";
     let remindDays = 7;
+    let showShipped = false;   // shipped items are hidden from the list unless you ask
     let formPhoto = "";
 
     try {
@@ -585,6 +625,7 @@
       if (STATUSES.indexOf(savedStatusFilter) !== -1) statusFilter = savedStatusFilter;
       const savedRemind = Number(localStorage.getItem("remindDays"));
       if (savedRemind >= 1) remindDays = savedRemind;
+      showShipped = localStorage.getItem("showShipped") === "1";
     } catch (e) {}
 
     // Cleans a list of bins (from storage or a backup): upper-case names, no repeats, 1 to 100 slots.
@@ -689,6 +730,7 @@
         localStorage.setItem("filter", filter);
         localStorage.setItem("statusFilter", statusFilter);
         localStorage.setItem("remindDays", String(remindDays));
+        localStorage.setItem("showShipped", showShipped ? "1" : "0");
       } catch (e) {
         alert("Your browser is full, so the latest change could not be saved. Export a CSV and remove some pictures or old items.");
       }
@@ -889,6 +931,7 @@
       const question = "Mark " + item.name + " as shipped?" + (spot ? " That frees slot " + spot + "." : "");
       if (!confirm(question)) return false;
       markFreed(item.bin, item.slot);
+      if (!item.sold) item.sold = soldDateFor(item.posted);
       item.status = "Shipped";
       item.bin = "";
       item.slot = 0;
@@ -919,7 +962,14 @@
     }
 
     siteInput.addEventListener("change", function () { updateBumpUI(true); });
-    statusInput.addEventListener("change", function () { updateSoldForUI(); updateSlotUI(); updateBumpUI(false); });
+    // Choosing Sold or Shipped fills in the sold date with today, unless a date is already there.
+    statusInput.addEventListener("change", function () {
+      const s = statusInput.value;
+      if ((s === "Sold" || s === "Shipped") && soldInput.value === "") soldInput.value = soldDateFor(postedInput.value);
+      updateSoldForUI();
+      updateSlotUI();
+      updateBumpUI(false);
+    });
     bumpInput.addEventListener("change", function () { updateBumpUI(false); });
     originalInput.addEventListener("input", function () { updateBumpUI(false); });
     currentInput.addEventListener("input", function () { updateBumpUI(false); });
@@ -927,6 +977,12 @@
     // ---- date helpers ----
     function pad(n) {
       return String(n).padStart(2, "0");
+    }
+
+    // Today, or the posted date if that is somehow later (the sold date can't be before the posted date).
+    function soldDateFor(posted) {
+      const today = todayText();
+      return posted && posted > today ? posted : today;
     }
 
     function todayText() {
@@ -1068,13 +1124,35 @@
     });
 
     // ---- show and hide the item form ----
+    const itemSheet = document.getElementById("item-sheet");
+    const advancedFields = document.getElementById("advanced-fields");
+    const advancedToggle = document.getElementById("advanced-toggle");
+    const sheetTitle = document.getElementById("sheet-title");
+    let advancedOpen = false;
+
+    // In the add window the extra boxes are tucked under "Advanced options". When editing they are always open.
+    function updateAdvancedUI() {
+      const editing = editingIndex !== null;
+      advancedToggle.hidden = editing;
+      advancedFields.hidden = !(editing || advancedOpen);
+      advancedToggle.textContent = advancedOpen ? "Hide advanced options ▴" : "Advanced options ▾";
+    }
+
+    advancedToggle.addEventListener("click", function () {
+      advancedOpen = !advancedOpen;
+      updateAdvancedUI();
+    });
+
     function showForm() {
-      form.style.display = "block";
-      addItemButton.textContent = "Close form";
+      sheetTitle.textContent = editingIndex === null ? "Add item" : "Edit item";
+      updateAdvancedUI();
+      itemSheet.hidden = false;
+      document.querySelector(".sheet-body").scrollTop = 0;
     }
 
     function closeForm() {
       editingIndex = null;
+      advancedOpen = false;
       form.reset();
       setFormPhoto("");
       updatePhotoUI();
@@ -1083,27 +1161,41 @@
       refreshSlotOptions();
       document.getElementById("slot-suggest").textContent = "";
       updateBumpUI(true);
+      updateAdvancedUI();
       submitButton.textContent = "Add item";
-      form.style.display = "none";
-      addItemButton.textContent = "+ Add item";
+      itemSheet.hidden = true;
+    }
+
+    // Opens the add window with the usual starting values: listed today, and a bin and slot
+    // (the one you give, or the suggested one).
+    function openNewForm(binName, slot, skipFocus) {
+      hideImportNote();
+      closeForm();
+      statusInput.value = "Listed";
+      postedInput.value = todayText();
+      updateSoldForUI();
+      updateSlotUI();
+      if (binName) {
+        binInput.value = binName;
+        refreshSlotOptions();
+        slotInput.value = String(slot);
+      } else {
+        applySuggestedSlot();
+      }
+      showForm();
+      if (!skipFocus) document.getElementById("name").focus();
     }
 
     addItemButton.addEventListener("click", function () {
-      hideImportNote();
-      if (form.style.display === "block") {
-        closeForm();
-      } else {
-        editingIndex = null;
-        showForm();
-        applySuggestedSlot();
-        document.getElementById("name").focus();
-      }
+      openNewForm();
     });
 
-    cancelButton.addEventListener("click", function () {
+    function leaveForm() {
       hideImportNote();
       closeForm();
-    });
+    }
+    cancelButton.addEventListener("click", leaveForm);
+    document.getElementById("sheet-close").addEventListener("click", leaveForm);
 
     function startEdit(index) {
       const item = items[index];
@@ -1135,19 +1227,11 @@
       updateBumpUI(false);
       submitButton.textContent = "Save changes";
       showForm();
-      form.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    // Opens a blank item form with the bin and slot already chosen (used when you scan an empty slot).
+    // Opens the add window with the bin and slot already chosen (used when you scan an empty slot).
     function startNewItemIn(binName, slot) {
-      hideImportNote();
-      closeForm();
-      binInput.value = binName;
-      refreshSlotOptions();
-      slotInput.value = String(slot);
-      showForm();
-      form.scrollIntoView({ behavior: "smooth", block: "start" });
-      document.getElementById("name").focus();
+      openNewForm(binName, slot);
     }
 
     // ---- import a listing from a screenshot ----
@@ -1407,6 +1491,7 @@
       if (!file) return;
 
       importButton.disabled = true;
+      openNewForm(null, null, true);
       importRaw.style.display = "none";
       showImportNote("Loading the screenshot reader...", false);
 
@@ -1459,10 +1544,14 @@
       updateSoldForUI();
       updateSlotUI();
       if (found.sold && found.price !== null) soldForInput.value = found.price;
-      if (!found.sold) applySuggestedSlot();
+      if (found.sold) {
+        soldInput.value = soldDateFor(postedInput.value);
+        advancedOpen = true;
+      } else {
+        applySuggestedSlot();
+      }
       updateBumpUI(true);
       showForm();
-      form.scrollIntoView({ behavior: "smooth", block: "start" });
 
       const missing = [];
       if (!found.name) missing.push("the item name");
@@ -2399,6 +2488,12 @@
 
     const expandedSold = new Set();
 
+    document.getElementById("shipped-toggle").addEventListener("click", function () {
+      showShipped = !showShipped;
+      save();
+      render();
+    });
+
     function render() {
       const list = document.getElementById("list");
       list.innerHTML = "";
@@ -2408,7 +2503,14 @@
       const itemByPlatform = {};
       PLATFORM_NAMES.forEach(function (name) { itemByPlatform[name] = 0; });
 
-      items.forEach(function (item, index) {
+      // The list is shown A to Z by name (numbers sort as numbers). Totals don't depend on the order.
+      const order = items.map(function (it, i) { return i; }).sort(function (a, b) {
+        return items[a].name.localeCompare(items[b].name, undefined, { sensitivity: "base", numeric: true }) || a - b;
+      });
+      let hiddenShipped = 0;
+
+      order.forEach(function (index) {
+        const item = items[index];
         // Totals and reminders always count every item, whatever the filters say.
         const done = isDone(item);
         const profit = done ? profitOf(item) : null;
@@ -2420,6 +2522,10 @@
 
         if (filter !== "All" && item.site !== filter) return;
         if (statusFilter !== "All" && item.status !== statusFilter) return;
+        if (statusFilter === "All" && item.status === "Shipped" && !showShipped) {
+          hiddenShipped++;
+          return;
+        }
         shown++;
 
         // Sold and shipped items shrink to name, site and profit unless you are filtering by that status (tap one to open it).
@@ -2560,7 +2666,12 @@
       if (statusFilter !== "All") parts.push(statusFilter);
       document.getElementById("filters-summary").textContent = "Filters" + (parts.length ? ": " + parts.join(" \u00B7 ") : "");
       document.getElementById("list-count").textContent =
-        "Showing " + shown + " of " + items.length + " items" + (parts.length ? " (" + parts.join(", ") + ")" : "");
+        "Showing " + shown + " of " + items.length + " items" + (parts.length ? " (" + parts.join(", ") + ")" : "") +
+        (hiddenShipped > 0 ? ", " + hiddenShipped + " shipped hidden" : "");
+      const shippedTotal = items.filter(function (it) { return it.status === "Shipped"; }).length;
+      const shippedToggle = document.getElementById("shipped-toggle");
+      shippedToggle.hidden = shippedTotal === 0 || statusFilter !== "All";
+      shippedToggle.textContent = showShipped ? "Hide shipped items" : "Show shipped items (" + shippedTotal + ")";
 
       const banner = document.getElementById("reduce-banner");
       if (dueNames.length > 0) {
